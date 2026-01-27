@@ -134,7 +134,7 @@ import AuthFooter from "../../components/User/AuthFooter";
             <div className="mt-10 flex flex-col items-center gap-4 text-sm">
               <p className="text-gray-400">
                 New to GADGETHOME?{" "}
-                <Link to="user/signup" className="text-cyan-400 font-bold hover:underline">
+                <Link to={"/user/signup"} className="text-cyan-400 font-bold hover:underline">
                   Create Account
                 </Link>
               </p>
