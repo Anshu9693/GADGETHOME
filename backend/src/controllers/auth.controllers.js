@@ -122,6 +122,37 @@ export const userLogout = (req, res) => {
   }
 };
 
+
+
+/**
+ * ✅ GET LOGGED-IN USER
+ * Route: GET /api/user/me
+ * Access: Private (cookie based)
+ */
+export const loggedInUser = async (req, res) => {
+  try {
+    // req.user is already set by auth middleware
+    const user = req.user;
+
+    return res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("LoggedInUser Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+
 // ADMINS Controllers
 export const adminSignup = async (req, res) => {
   try {

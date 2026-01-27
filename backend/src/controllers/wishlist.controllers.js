@@ -1,11 +1,15 @@
 import WishlistModel from "../models/wishlist.model.js";
 import ProductModel from "../models/products.model.js";
 
-// ✅ ADD TO WISHLIST
+/* ================= ADD TO WISHLIST ================= */
 export const addToWishlist = async (req, res) => {
   try {
     const { productId } = req.body;
     const userId = req.user._id;
+
+    if (!productId) {
+      return res.status(400).json({ message: "Product ID is required" });
+    }
 
     const productExists = await ProductModel.findById(productId);
     if (!productExists) {
@@ -20,9 +24,16 @@ export const addToWishlist = async (req, res) => {
         products: [productId],
       });
     } else {
-      if (wishlist.products.includes(productId)) {
-        return res.status(400).json({ message: "Product already in wishlist" });
+      const alreadyExists = wishlist.products.some(
+        (id) => id.toString() === productId
+      );
+
+      if (alreadyExists) {
+        return res.status(400).json({
+          message: "Product already in wishlist",
+        });
       }
+
       wishlist.products.push(productId);
       await wishlist.save();
     }
@@ -33,11 +44,12 @@ export const addToWishlist = async (req, res) => {
       wishlist,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// ✅ GET USER WISHLIST
+/* ================= GET USER WISHLIST ================= */
 export const getWishlist = async (req, res) => {
   try {
     const wishlist = await WishlistModel.findOne({
@@ -53,12 +65,14 @@ export const getWishlist = async (req, res) => {
   }
 };
 
-// ✅ REMOVE FROM WISHLIST
+/* ================= REMOVE FROM WISHLIST ================= */
 export const removeFromWishlist = async (req, res) => {
   try {
     const { productId } = req.params;
 
-    const wishlist = await WishlistModel.findOne({ user: req.user._id });
+    const wishlist = await WishlistModel.findOne({
+      user: req.user._id,
+    });
 
     if (!wishlist) {
       return res.status(404).json({ message: "Wishlist not found" });

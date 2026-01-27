@@ -140,4 +140,27 @@ export const removeFromCart = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ✅ CLEAR ENTIRE CART
+export const clearCart = async (req, res) => {
+  try {
+    const cart = await CartModel.findOne({ user: req.user._id });
+    if (!cart) {
+      return res.status(404).json({ message: "Cart not found" });
+    }
+
+    cart.items = [];
+    cart.totalItems = 0;
+    cart.totalPrice = 0;
+    await cart.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Cart cleared",
+      cart,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
     

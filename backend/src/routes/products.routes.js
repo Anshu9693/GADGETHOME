@@ -23,7 +23,9 @@ const upload = multer({
 
 // ---------- USER ROUTES ----------
 // ---------- USER ROUTES ----------
-router.get("/user/allproducts", userAuthMiddleware, getAllProducts);
+router.get("/user/allproducts", 
+  // userAuthMiddleware, 
+  getAllProducts);
 router.get("/user/featured", userAuthMiddleware, getFeaturedProducts);
 
 // [GET /api/products/user/search?q=smart bulb]

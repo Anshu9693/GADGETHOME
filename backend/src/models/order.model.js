@@ -38,7 +38,7 @@ const orderSchema = new mongoose.Schema(
 
     paymentMethod: {
       type: String,
-      enum: ["COD", "Card", "UPI"],
+      enum: ["COD", "Card", "UPI", "STRIPE"],
       default: "COD",
     },
 
@@ -59,6 +59,8 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    paymentIntentId: String,
+
   },
   { timestamps: true }
 );
