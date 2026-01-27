@@ -33,12 +33,15 @@ const sidebarVariants = {
 
 const PAGE_LIMIT = 20; // Number of products per page
 
+
+
 const ProductListing = () => {
   const navigate = useNavigate();
 
   /* ================= STATE ================= */
   const [products, setProducts] = useState([]);
   const [wishlist, setWishlist] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -77,9 +80,15 @@ const ProductListing = () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/wishlist`, { withCredentials: true });
       setWishlist(res.data.products.map((p) => p._id));
+      setIsLoggedIn(true);
     } catch {
-      // ignore if user not logged in
+      setIsLoggedIn(false);
     }
+  };
+
+  const handleProductClick = (productId) => {
+    if (isLoggedIn) navigate(`/user/productDetail/${productId}`);
+    else navigate("/user/signin");
   };
 
   useEffect(() => {
@@ -209,7 +218,7 @@ const ProductListing = () => {
                   variants={cardVariants}
                   whileHover={{ y: -5 }}
                   className="group relative bg-[#0b0b0b] border border-white/5 rounded-2xl overflow-hidden cursor-pointer flex flex-col"
-                  onClick={() => navigate(`/user/signin`)}
+                    onClick={() => handleProductClick(product._id)}
                 >
                   <div className="relative aspect-square overflow-hidden bg-neutral-900/50">
                     <img
@@ -217,7 +226,6 @@ const ProductListing = () => {
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       alt={product.name}
                       loading="lazy"
-                       onClick={() => navigate(`/user/productDetail/${product._id}`)}
                     />
                     <button
                       onClick={(e) => toggleWishlist(e, product._id)}

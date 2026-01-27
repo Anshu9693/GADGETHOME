@@ -42,7 +42,7 @@ const Cart = () => {
       });
 
       // 🔥 Sync navbar badge
-      window.dispatchEvent(new Event("cartUpdated"));
+      window.dispatchEvent(new Event("cart-updated"));
     } catch {
       toast.error("Failed to load cart");
     } finally {
@@ -61,13 +61,13 @@ const Cart = () => {
     setBusy((p) => ({ ...p, [productId]: true }));
 
     try {
-      const res = await api.put("/api/cart/update", {
+      const res = await api.put("/api/cart/updateItems", {
         productId,
         quantity,
       });
 
       setCart(res.data.cart);
-      window.dispatchEvent(new Event("cartUpdated"));
+      window.dispatchEvent(new Event("cart-updated"));
     } catch {
       toast.error("Quantity update failed");
     } finally {
@@ -85,7 +85,7 @@ const Cart = () => {
       const res = await api.delete(`/api/cart/remove/${productId}`);
       setCart(res.data.cart);
       toast.success("Item removed");
-      window.dispatchEvent(new Event("cartUpdated"));
+      window.dispatchEvent(new Event("cart-updated"));
     } catch {
       toast.error("Failed to remove item");
     } finally {
@@ -113,6 +113,7 @@ const Cart = () => {
         {/* HEADER */}
         <div className="flex items-center gap-4 mb-12">
           <button
+            type="button"
             onClick={() => navigate(-1)}
             className="p-3 rounded-full bg-white/5 border border-white/10 hover:bg-cyan-500 hover:text-black transition-all"
           >
@@ -173,13 +174,19 @@ const Cart = () => {
                           {item.product.name}
                         </h3>
                         <p className="text-cyan-500 mt-1">
-                          ₹{item.product.price.toLocaleString()}
+                          ₹{((item.product.discountPrice && Number(item.product.discountPrice)) || Number(item.product.price)).toLocaleString()}
+                          {item.product.discountPrice && (
+                            <span className="ml-2 text-sm text-gray-500 line-through">
+                              ₹{Number(item.product.price).toLocaleString()}
+                            </span>
+                          )}
                         </p>
                       </div>
 
                       {/* QUANTITY */}
                       <div className="flex items-center gap-3 bg-white/5 w-fit p-1 rounded-lg border border-white/10">
                         <button
+                          type="button"
                           onClick={() =>
                             updateQuantity(
                               item.product._id,
@@ -196,6 +203,7 @@ const Cart = () => {
                         </span>
 
                         <button
+                          type="button"
                           onClick={() =>
                             updateQuantity(
                               item.product._id,
@@ -210,6 +218,7 @@ const Cart = () => {
 
                     {/* REMOVE */}
                     <button
+                      type="button"
                       onClick={() => removeItem(item.product._id)}
                       className="absolute top-4 right-4 text-gray-500 hover:text-red-500"
                     >
