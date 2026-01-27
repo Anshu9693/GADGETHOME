@@ -42,6 +42,18 @@ const Home = () => {
     <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden font-sans">
       
       {/* 1. HERO SECTION */}
+      {/* Admin Login Button */}
+<div className="absolute top-6 right-6 z-20">
+  <button
+    onClick={() => navigate("/admin/signin")}
+    className="px-5 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-md
+               text-sm font-semibold text-white hover:bg-cyan-500 hover:text-black
+               transition-all shadow-lg"
+  >
+    Admin Login
+  </button>
+</div>
+
       <section className="relative h-screen flex items-center justify-center px-6">
         {/* Animated Background Glows */}
         <div className="absolute top-20 left-10 w-72 h-72 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" />

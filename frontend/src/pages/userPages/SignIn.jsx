@@ -4,6 +4,7 @@
   import { toast, ToastContainer } from "react-toastify";
   import { Link, useNavigate } from "react-router-dom";
   import "react-toastify/dist/ReactToastify.css";
+import AuthFooter from "../../components/User/AuthFooter";
 
   const fadeUp = {
     hidden: { opacity: 0, y: 40 },
@@ -143,6 +144,7 @@
             </div>
           </motion.div>
         </div>
+         <AuthFooter />
       </>
     );
   };

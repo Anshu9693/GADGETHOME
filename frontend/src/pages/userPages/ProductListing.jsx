@@ -12,6 +12,7 @@ import {
   FaRegHeart,
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import AuthFooter from "../../components/User/AuthFooter.jsx";
 
 /* ================= ANIMATION VARIANTS ================= */
 const pageVariants = {
@@ -321,6 +322,7 @@ const ProductListing = () => {
           </>
         )}
       </AnimatePresence>
+       <AuthFooter />
     </>
   );
 };

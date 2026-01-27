@@ -124,7 +124,7 @@ const AdminSignin = () => {
           </form>
 
           {/* Footer */}
-          <p className="text-center text-sm text-gray-400 mt-6">
+          {/* <p className="text-center text-sm text-gray-400 mt-6">
             Don’t have an admin account?{" "}
             <Link
               to="/admin/signup"
@@ -132,7 +132,7 @@ const AdminSignin = () => {
             >
               Sign up
             </Link>
-          </p>
+          </p> */}
         </motion.div>
       </div>
     </>
