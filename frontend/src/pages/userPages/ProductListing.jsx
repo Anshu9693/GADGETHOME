@@ -198,7 +198,7 @@ const ProductListing = () => {
           {loading && products.length === 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-8">
               {[...Array(PAGE_LIMIT)].map((_, i) => (
-                <div key={i} className="aspect-[3/4] rounded-2xl bg-white/5 animate-pulse" />
+                <div key={i} className="aspect-[3/4] rounded-2xl bg-white/5 animate-pulse"  />
               ))}
             </div>
           ) : (
@@ -209,7 +209,7 @@ const ProductListing = () => {
                   variants={cardVariants}
                   whileHover={{ y: -5 }}
                   className="group relative bg-[#0b0b0b] border border-white/5 rounded-2xl overflow-hidden cursor-pointer flex flex-col"
-                  onClick={() => navigate(`/user/productDetail/${product._id}`)}
+                  onClick={() => navigate(`/user/signin`)}
                 >
                   <div className="relative aspect-square overflow-hidden bg-neutral-900/50">
                     <img
@@ -217,6 +217,7 @@ const ProductListing = () => {
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       alt={product.name}
                       loading="lazy"
+                       onClick={() => navigate(`/user/productDetail/${product._id}`)}
                     />
                     <button
                       onClick={(e) => toggleWishlist(e, product._id)}
