@@ -15,8 +15,7 @@ const NAV_ITEMS = [
   { label: "Home", path: "/" },
   { label: "Products", path: "/user/allproducts" },
   { label: "Featured", path: "/user/featured" },
-  { label: "My Order", path: "/user/myorders" },
-
+  { label: "My Orders", path: "/user/myorders" },
 ];
 
 /* ================= AXIOS ================= */
@@ -34,7 +33,6 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
   const [wishlistCount, setWishlistCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
 
@@ -60,29 +58,16 @@ const Navbar = () => {
 
   /* ================= FETCH WISHLIST ================= */
   useEffect(() => {
-    if (!isAuthenticated) {
-      setWishlistCount(0);
-      return;
-    }
+    if (!isAuthenticated) return setWishlistCount(0);
 
-    const fetchWishlist = async () => {
-      try {
-        const res = await api.get("/api/wishlist");
-        setWishlistCount(res.data.products?.length || 0);
-      } catch {
-        setWishlistCount(0);
-      }
-    };
-
-    fetchWishlist();
+    api.get("/api/wishlist")
+      .then(res => setWishlistCount(res.data.products?.length || 0))
+      .catch(() => setWishlistCount(0));
   }, [isAuthenticated]);
 
-  /* ================= FETCH CART (LIVE SYNC) ================= */
+  /* ================= FETCH CART ================= */
   useEffect(() => {
-    if (!isAuthenticated) {
-      setCartCount(0);
-      return;
-    }
+    if (!isAuthenticated) return setCartCount(0);
 
     const fetchCart = async () => {
       try {
@@ -94,14 +79,8 @@ const Navbar = () => {
     };
 
     fetchCart();
-
-    // 🔥 LISTEN FOR CART CHANGES (add / remove / order placed)
-    const handleCartUpdate = () => fetchCart();
-    window.addEventListener("cart-updated", handleCartUpdate);
-
-    return () => {
-      window.removeEventListener("cart-updated", handleCartUpdate);
-    };
+    window.addEventListener("cart-updated", fetchCart);
+    return () => window.removeEventListener("cart-updated", fetchCart);
   }, [isAuthenticated]);
 
   /* ================= CLOSE PROFILE ================= */
@@ -117,25 +96,21 @@ const Navbar = () => {
 
   /* ================= LOGOUT ================= */
   const handleLogout = async () => {
-    try {
-      await api.post("/api/user/logout");
-      setIsAuthenticated(false);
-      setWishlistCount(0);
-      setCartCount(0);
-      setProfileOpen(false);
-      navigate("/");
-    } catch (err) {
-      console.error(err);
-    }
+    await api.post("/api/user/logout");
+    setIsAuthenticated(false);
+    setWishlistCount(0);
+    setCartCount(0);
+    setProfileOpen(false);
+    navigate("/");
   };
 
   return (
     <nav
-      className={`fixed top-0 w-full z-50 transition-all ${
-        scrolled
+      className={`fixed top-0 w-full z-50 transition-all
+        ${scrolled
           ? "bg-black/80 backdrop-blur border-b border-white/10"
-          : "bg-transparent"
-      }`}
+          : "bg-black md:bg-transparent"}
+      `}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* LOGO */}
@@ -145,11 +120,11 @@ const Navbar = () => {
 
         {/* DESKTOP MENU */}
         <ul className="hidden md:flex gap-8 text-sm font-semibold uppercase">
-          {NAV_ITEMS.map((item) => (
+          {NAV_ITEMS.map(item => (
             <li key={item.label}>
               <Link
                 to={item.path}
-                className="text-gray-400 hover:text-cyan-400 transition"
+                className="text-gray-300 hover:text-cyan-400 transition"
               >
                 {item.label}
               </Link>
@@ -158,7 +133,7 @@ const Navbar = () => {
         </ul>
 
         {/* RIGHT ICONS */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-4">
           <NavIcon to="/user/wishlist" badge={wishlistCount} badgeColor="red">
             <FaHeart />
           </NavIcon>
@@ -167,11 +142,11 @@ const Navbar = () => {
             <FaShoppingCart />
           </NavIcon>
 
-          {/* PROFILE */}
+          {/* PROFILE (DESKTOP) */}
           <div ref={profileRef} className="relative hidden md:block">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="text-gray-400 hover:text-cyan-400"
+              className="text-white p-2 rounded-full hover:bg-white/10"
             >
               <FaUser />
             </button>
@@ -179,23 +154,23 @@ const Navbar = () => {
             <AnimatePresence>
               {profileOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: 8 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  className="absolute right-0 mt-3 w-40 rounded-xl bg-[#0b0b0b] border border-white/10 shadow-xl"
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute right-0 mt-3 w-40 rounded-xl bg-[#0b0b0b] border border-white/10"
                 >
                   {!isAuthenticated ? (
                     <Link
                       to="/user/signin"
                       onClick={() => setProfileOpen(false)}
-                      className="block px-5 py-3 text-sm text-cyan-400 hover:bg-white/5"
+                      className="block px-5 py-3 text-cyan-400 hover:bg-white/5"
                     >
                       Sign In
                     </Link>
                   ) : (
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-5 py-3 text-sm text-red-400 hover:bg-red-500/10"
+                      className="w-full text-left px-5 py-3 text-red-400 hover:bg-red-500/10"
                     >
                       Logout
                     </button>
@@ -205,30 +180,78 @@ const Navbar = () => {
             </AnimatePresence>
           </div>
 
-          {/* MOBILE */}
+          {/* MOBILE BUTTON */}
           <button
-            className="md:hidden text-white"
+            className="md:hidden text-white text-xl"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
             {mobileOpen ? <FaTimes /> : <FaBars />}
           </button>
         </div>
       </div>
+
+      {/* ================= MOBILE MENU ================= */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            className="md:hidden bg-black border-t border-white/10"
+          >
+            <ul className="flex flex-col px-6 py-6 gap-5">
+              {NAV_ITEMS.map(item => (
+                <Link
+                  key={item.label}
+                  to={item.path}
+                  onClick={() => setMobileOpen(false)}
+                  className="text-white text-lg font-semibold hover:text-cyan-400"
+                >
+                  {item.label}
+                </Link>
+              ))}
+
+              <div className="flex gap-6 pt-6 border-t border-white/10">
+                <NavIcon to="/user/wishlist" badge={wishlistCount}>
+                  <FaHeart />
+                </NavIcon>
+                <NavIcon to="/user/cart" badge={cartCount}>
+                  <FaShoppingCart />
+                </NavIcon>
+
+                {!isAuthenticated ? (
+                  <Link to="/user/signin" className="text-cyan-400 font-semibold">
+                    Sign In
+                  </Link>
+                ) : (
+                  <button onClick={handleLogout} className="text-red-400 font-semibold">
+                    Logout
+                  </button>
+                )}
+              </div>
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };
 
-/* ================= REUSABLE ICON ================= */
+/* ================= ICON ================= */
 const NavIcon = ({ to, children, badge, badgeColor }) => (
-  <Link to={to} className="relative text-gray-400 hover:text-cyan-400">
+  <Link
+    to={to}
+    className="relative text-white p-2 rounded-full bg-white/5 hover:bg-cyan-500/20"
+  >
     {children}
     {badge > 0 && (
       <span
-        className={`absolute -top-2 -right-2 w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-bold ${
-          badgeColor === "red"
+        className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px]
+          flex items-center justify-center font-bold
+          ${badgeColor === "red"
             ? "bg-red-500 text-white"
-            : "bg-cyan-500 text-black"
-        }`}
+            : "bg-cyan-400 text-black"}
+        `}
       >
         {badge}
       </span>
