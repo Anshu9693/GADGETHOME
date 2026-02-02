@@ -6,39 +6,24 @@ import {
   FaHeart,
   FaRegHeart,
   FaChevronLeft,
-  FaShieldAlt,
-  FaTruck,
-  FaRedo,
   FaShoppingCart,
+  FaShareAlt,
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import NavBar from "../../components/User/NavBar.jsx";
 
-/* ================= AXIOS INSTANCE ================= */
+/* ================= AXIOS ================= */
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
   withCredentials: true,
-  timeout: 8000,
 });
-
-/* ================= TRUST COMPONENT ================= */
-const Trust = ({ icon, text }) => (
-  <div className="flex flex-col items-center gap-2 text-gray-400 text-xs text-center">
-    <div className="text-cyan-500 text-2xl mb-1">{icon}</div>
-    <span className="font-medium">{text}</span>
-  </div>
-);
 
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [mainImage, setMainImage] = useState("");
-  const [quantity, setQuantity] = useState(1);
-  const [wishLoading, setWishLoading] = useState(false);
-  const [cartLoading, setCartLoading] = useState(false);
   const [isInWishlist, setIsInWishlist] = useState(false);
 
   /* ================= FETCH PRODUCT ================= */
@@ -47,172 +32,162 @@ const ProductDetails = () => {
       try {
         const res = await api.get(`/api/products/user/${id}`);
         setProduct(res.data.product);
-        setMainImage(res.data.product.images?.[0] || "");
+        setMainImage(res.data.product.images?.[0]);
         setIsInWishlist(res.data.isInWishlist || false);
       } catch {
         toast.error("Product not found");
         navigate(-1);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchProduct();
   }, [id, navigate]);
 
-  /* ================= ADD TO CART ================= */
-  const handleAddToCart = async () => {
-    if (cartLoading) return;
-    setCartLoading(true);
+  /* ================= SHARE ================= */
+  const handleShare = () => {
+    const url = window.location.href;
 
-    try {
-      await api.post("/api/cart/add", { productId: id, quantity });
-      toast.success("Added to cart 🛒");
-    } catch (err) {
-      if (err.response?.status === 401) navigate("/user/signin");
-      else toast.error(err.response?.data?.message || "Failed to add to cart");
-    } finally {
-      setCartLoading(false);
+    if (navigator.share) {
+      navigator.share({
+        title: product.name,
+        text: product.description,
+        url,
+      });
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success("Product link copied 🔗");
     }
   };
 
-  /* ================= TOGGLE WISHLIST ================= */
-  const handleWishlistToggle = async () => {
-    if (wishLoading) return;
-    setWishLoading(true);
-
+  /* ================= WISHLIST ================= */
+  const toggleWishlist = async () => {
     try {
       if (isInWishlist) {
         await api.delete(`/api/wishlist/remove/${id}`);
         setIsInWishlist(false);
         toast.success("Removed from wishlist");
       } else {
-        await api.post("/api/wishlist/add", { productId: id });
+        await api.post(`/api/wishlist/add`, { productId: id });
         setIsInWishlist(true);
         toast.success("Added to wishlist ❤️");
       }
-    } catch (err) {
-      if (err.response?.status === 401) navigate("/user/signin");
-      else toast.error(err.response?.data?.message || "Operation failed");
-    } finally {
-      setWishLoading(false);
+    } catch {
+      navigate("/user/signin");
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+  if (!product) return null;
 
   return (
     <>
       <NavBar />
-      <div className="min-h-screen bg-[#050505] text-white pt-32 pb-20 px-6 md:px-12">
+
+      <div className="min-h-screen bg-[#050505] text-white pt-28 pb-20 px-6 md:px-12">
         <div className="max-w-7xl mx-auto">
           {/* BACK */}
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 mb-8 transition-colors"
+            className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 mb-6"
           >
             <FaChevronLeft /> Back
           </button>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            {/* IMAGES */}
-            <motion.div initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-              <div className="bg-white/5 border border-white/10 rounded-[3rem] p-8 aspect-square flex items-center justify-center overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-14">
+            {/* ================= LEFT : IMAGES ================= */}
+            <div className="space-y-4">
+              <div className="bg-white/5 border border-white/10 rounded-3xl p-6 aspect-square flex items-center justify-center">
                 <motion.img
                   key={mainImage}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
                   src={mainImage}
                   alt={product.name}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
                   className="max-h-full max-w-full object-contain"
                 />
               </div>
 
-              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-                {product.images.map((img, idx) => (
+              {/* THUMBNAILS */}
+              <div className="flex gap-3 overflow-x-auto">
+                {product.images.map((img, i) => (
                   <button
-                    key={idx}
+                    key={i}
                     onClick={() => setMainImage(img)}
-                    className={`w-24 h-24 rounded-2xl border flex-shrink-0 p-2 transition-all ${
-                      mainImage === img ? "border-cyan-500 bg-white/5" : "border-white/10"
+                    className={`w-20 h-20 rounded-xl border p-2 flex-shrink-0 ${
+                      mainImage === img
+                        ? "border-cyan-500 bg-white/5"
+                        : "border-white/10"
                     }`}
                   >
-                    <img src={img} alt="" className="w-full h-full object-contain" />
+                    <img
+                      src={img}
+                      alt=""
+                      className="w-full h-full object-contain"
+                    />
                   </button>
                 ))}
               </div>
-            </motion.div>
+            </div>
 
-            {/* INFO */}
-            <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col justify-center">
-              <p className="text-cyan-500 font-bold uppercase mb-3 tracking-widest">{product.brand}</p>
-              <h1 className="text-5xl font-black mb-6 leading-tight">{product.name}</h1>
+            {/* ================= RIGHT : INFO ================= */}
+            <div>
+              <p className="text-cyan-400 font-bold uppercase mb-2">
+                {product.brand}
+              </p>
 
-              <div className="flex items-center gap-4 mb-8">
-                <span className="text-4xl font-black">₹{product.price}</span>
-                <span className="bg-cyan-500/10 text-cyan-400 text-xs px-3 py-1 rounded-full font-bold">
-                  IN STOCK
-                </span>
+              <h1 className="text-3xl md:text-4xl font-black mb-4">
+                {product.name}
+              </h1>
+
+              {/* PRICE */}
+              <div className="flex items-end gap-4 mb-6">
+                {product.discountPrice ? (
+                  <>
+                    <span className="text-3xl font-black text-cyan-400">
+                      ₹{product.discountPrice.toLocaleString()}
+                    </span>
+                    <span className="text-lg text-gray-500 line-through">
+                      ₹{product.price.toLocaleString()}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-3xl font-black">
+                    ₹{product.price.toLocaleString()}
+                  </span>
+                )}
               </div>
 
-              <p className="text-gray-400 mb-8 leading-relaxed">{product.description}</p>
+              <p className="text-gray-400 mb-8 leading-relaxed">
+                {product.description}
+              </p>
 
-              {/* QUANTITY */}
-              <div className="flex items-center gap-6 mb-10">
-                <div className="flex items-center bg-white/5 rounded-xl border border-white/10 p-1">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    −
-                  </button>
-                  <span className="w-12 text-center font-bold text-lg">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* ACTIONS */}
-              <div className="flex gap-4 mb-12">
-                <button
-                  disabled={cartLoading}
-                  onClick={handleAddToCart}
-                  className="flex-1 h-16 bg-white text-black font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-cyan-500 transition-all active:scale-95 disabled:opacity-60"
-                >
+              {/* ACTION BUTTONS */}
+              <div className="flex gap-3">
+                <button className="flex-1 h-14 bg-white text-black rounded-xl font-black flex items-center justify-center gap-2 hover:bg-cyan-500 transition-all">
                   <FaShoppingCart />
                   ADD TO CART
                 </button>
 
+                {/* SHARE */}
                 <button
-                  disabled={wishLoading}
-                  onClick={handleWishlistToggle}
-                  className={`w-16 h-16 border rounded-2xl flex items-center justify-center transition-all active:scale-90 disabled:opacity-60 ${
+                  onClick={handleShare}
+                  className="w-14 h-14 border border-white/20 rounded-xl flex items-center justify-center hover:border-cyan-500 hover:text-cyan-400 transition-all"
+                >
+                  <FaShareAlt />
+                </button>
+
+                {/* WISHLIST */}
+                <button
+                  onClick={toggleWishlist}
+                  className={`w-14 h-14 rounded-xl border flex items-center justify-center transition-all ${
                     isInWishlist
-                      ? "text-red-500 border-red-500/50 bg-red-500/10"
-                      : "border-white/10 hover:border-red-500/50 hover:text-red-500"
+                      ? "border-red-500 text-red-500 bg-red-500/10"
+                      : "border-white/20 hover:border-red-500 hover:text-red-500"
                   }`}
                 >
-                  {isInWishlist ? <FaHeart size={22} /> : <FaRegHeart size={22} />}
+                  {isInWishlist ? <FaHeart /> : <FaRegHeart />}
                 </button>
               </div>
-
-              {/* TRUST */}
-              <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-8">
-                <Trust icon={<FaTruck />} text="Fast Delivery" />
-                <Trust icon={<FaShieldAlt />} text="1 Year Warranty" />
-                <Trust icon={<FaRedo />} text="7 Day Return" />
-              </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

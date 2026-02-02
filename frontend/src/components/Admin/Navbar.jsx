@@ -23,7 +23,7 @@ const AdminNavbar = () => {
         {},
         { withCredentials: true }
       );
-      navigate("/admin/signin");
+      navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -43,10 +43,12 @@ const AdminNavbar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-6 text-sm font-medium">
+          
           <NavItem to="/admin/dashboard" label="Dashboard" />
           <NavItem to="/admin/add-product" label="Add Product" />
           <NavItem to="/admin/products" label="Products" />
-          <NavItem to="/admin/orders" label="Orders" />
+          <NavItem to="/admin/orders" label="All Orders" />
+          <NavItem to="/" label=" Go toHome" />
         </div>
 
         {/* Right Section */}
@@ -65,13 +67,13 @@ const AdminNavbar = () => {
           {/* Profile */}
           <div className="relative group hidden md:block">
             <FaUserCircle className="text-2xl cursor-pointer text-gray-300 hover:text-cyan-400" />
-            <div className="absolute right-0 mt-3 w-40 bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all">
-              <button
+            <div className="absolute right-0 top-0 mt-3 w-40 bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl shadow-lg opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all">
+              {/* <button
                 onClick={() => navigate("/admin/profile")}
                 className="w-full px-4 py-2 text-white text-left text-sm hover:bg-white/10"
               >
                 Profile
-              </button>
+              </button> */}
               <button
                 onClick={handleLogout}
                 className="w-full px-4 py-2 text-left text-sm text-red-400 hover:bg-white/10 flex items-center gap-2"

@@ -1,4 +1,5 @@
 import React from 'react'
+import { Toaster } from "react-hot-toast";
 import { Route, Routes } from 'react-router-dom'
 import LandingPage from './pages/LandingPage.jsx'
 import AdminSignup from './pages/adminPages/SignUp.jsx'
@@ -21,13 +22,24 @@ import ExploreCategories from './pages/userPages/ExploreCategories.jsx'
 import Checkout from './pages/userPages/Checkout.jsx'
 import MyOrders from './pages/userPages/MyOrders.jsx'
 import OrderDetails from './pages/userPages/OrderDetails.jsx'
-
+import BestSelling from './pages/userPages/BestSelling.jsx'
 
 // Routes
 
 const App = () => {
   return (
     <>
+     <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: "#0b0b0b",
+            color: "#fff",
+            border: "1px solid rgba(255,255,255,0.1)",
+          },
+        }}
+      />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/admin/signup" element={<AdminSignup />} />
@@ -54,7 +66,9 @@ const App = () => {
         <Route path="/user/Checkout" element={<Checkout/>} />
         <Route path="/user/myorders" element={<MyOrders/>} />
         <Route path="/user/order/:orderId" element={<OrderDetails/>} />
+        <Route path="/user/bestselling" element={<BestSelling/>} />
 
+        
 
 
 

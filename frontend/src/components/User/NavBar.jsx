@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -14,6 +14,7 @@ import {
 const NAV_ITEMS = [
   { label: "Home", path: "/" },
   { label: "Products", path: "/user/allproducts" },
+  { label: "Best Selling", path: "/user/bestselling" },
   { label: "Featured", path: "/user/featured" },
   { label: "My Orders", path: "/user/myorders" },
 ];
@@ -36,36 +37,29 @@ const Navbar = () => {
   const [wishlistCount, setWishlistCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
 
-  /* ================= SCROLL EFFECT ================= */
+  /* ================= SCROLL ================= */
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  /* ================= AUTH CHECK ================= */
+  /* ================= AUTH ================= */
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        await api.get("/api/user/me");
-        setIsAuthenticated(true);
-      } catch {
-        setIsAuthenticated(false);
-      }
-    };
-    checkAuth();
+    api.get("/api/user/me")
+      .then(() => setIsAuthenticated(true))
+      .catch(() => setIsAuthenticated(false));
   }, []);
 
-  /* ================= FETCH WISHLIST ================= */
+  /* ================= WISHLIST ================= */
   useEffect(() => {
     if (!isAuthenticated) return setWishlistCount(0);
-
     api.get("/api/wishlist")
       .then(res => setWishlistCount(res.data.products?.length || 0))
       .catch(() => setWishlistCount(0));
   }, [isAuthenticated]);
 
-  /* ================= FETCH CART ================= */
+  /* ================= CART ================= */
   useEffect(() => {
     if (!isAuthenticated) return setCartCount(0);
 
@@ -107,12 +101,12 @@ const Navbar = () => {
   return (
     <nav
       className={`fixed top-0 w-full z-50 transition-all
-        ${scrolled
-          ? "bg-black/80 backdrop-blur border-b border-white/10"
-          : "bg-black md:bg-transparent"}
-      `}
+      ${scrolled
+        ? "bg-black/80 backdrop-blur border-b border-white/10"
+        : "bg-black md:bg-transparent"}`}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
         {/* LOGO */}
         <Link to="/" className="text-2xl font-black text-white">
           GADGET<span className="text-cyan-400">HOME</span>
@@ -122,12 +116,18 @@ const Navbar = () => {
         <ul className="hidden md:flex gap-8 text-sm font-semibold uppercase">
           {NAV_ITEMS.map(item => (
             <li key={item.label}>
-              <Link
+              <NavLink
                 to={item.path}
-                className="text-gray-300 hover:text-cyan-400 transition"
+                className={({ isActive }) =>
+                  `pb-1 transition ${
+                    isActive
+                      ? "text-cyan-400 border-b-2 border-cyan-400"
+                      : "text-gray-300 hover:text-cyan-400"
+                  }`
+                }
               >
                 {item.label}
-              </Link>
+              </NavLink>
             </li>
           ))}
         </ul>
@@ -142,7 +142,7 @@ const Navbar = () => {
             <FaShoppingCart />
           </NavIcon>
 
-          {/* PROFILE (DESKTOP) */}
+          {/* PROFILE */}
           <div ref={profileRef} className="relative hidden md:block">
             <button
               onClick={() => setProfileOpen(!profileOpen)}
@@ -180,7 +180,7 @@ const Navbar = () => {
             </AnimatePresence>
           </div>
 
-          {/* MOBILE BUTTON */}
+          {/* MOBILE TOGGLE */}
           <button
             className="md:hidden text-white text-xl"
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -190,7 +190,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* ================= MOBILE MENU ================= */}
+      {/* MOBILE MENU */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -201,14 +201,20 @@ const Navbar = () => {
           >
             <ul className="flex flex-col px-6 py-6 gap-5">
               {NAV_ITEMS.map(item => (
-                <Link
+                <NavLink
                   key={item.label}
                   to={item.path}
                   onClick={() => setMobileOpen(false)}
-                  className="text-white text-lg font-semibold hover:text-cyan-400"
+                  className={({ isActive }) =>
+                    `text-lg font-semibold ${
+                      isActive
+                        ? "text-cyan-400"
+                        : "text-white hover:text-cyan-400"
+                    }`
+                  }
                 >
                   {item.label}
-                </Link>
+                </NavLink>
               ))}
 
               <div className="flex gap-6 pt-6 border-t border-white/10">
@@ -237,26 +243,30 @@ const Navbar = () => {
   );
 };
 
-/* ================= ICON ================= */
+/* ================= NAV ICON ================= */
 const NavIcon = ({ to, children, badge, badgeColor }) => (
-  <Link
+  <NavLink
     to={to}
-    className="relative text-white p-2 rounded-full bg-white/5 hover:bg-cyan-500/20"
+    className={({ isActive }) =>
+      `relative p-2 rounded-full transition
+      ${isActive
+        ? "bg-cyan-500/30 text-cyan-400"
+        : "text-white bg-white/5 hover:bg-cyan-500/20"}`
+    }
   >
     {children}
     {badge > 0 && (
       <span
         className={`absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px]
-          flex items-center justify-center font-bold
-          ${badgeColor === "red"
-            ? "bg-red-500 text-white"
-            : "bg-cyan-400 text-black"}
-        `}
+        flex items-center justify-center font-bold
+        ${badgeColor === "red"
+          ? "bg-red-500 text-white"
+          : "bg-cyan-400 text-black"}`}
       >
         {badge}
       </span>
     )}
-  </Link>
+  </NavLink>
 );
 
 export default Navbar;

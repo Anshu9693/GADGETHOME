@@ -3,80 +3,71 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
 import NavBar from "../../components/User/NavBar.jsx";
+import Footer from "../../components/User/Footer.jsx";
 import {
   FaBox,
-  FaTruck,
   FaCheckCircle,
-  FaTimesCircle,
   FaArrowLeft,
+  FaCopy,
+  FaMapMarkerAlt,
+  FaReceipt,
+  FaShippingFast,
 } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 
-/* ================= AXIOS ================= */
+/* ================= API ================= */
 const api = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
   withCredentials: true,
-  timeout: 8000,
 });
 
+/* ================= PAGE ================= */
 const OrderDetails = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
+
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
 
-  /* ================= FETCH ORDER DETAILS ================= */
   useEffect(() => {
-    const fetchOrderDetails = async () => {
+    const fetchOrder = async () => {
       try {
         const res = await api.get(`/api/order/user/${orderId}`);
         setOrder(res.data.order);
-      } catch (err) {
-        toast.error("Failed to load order details");
+      } catch {
+        toast.error("Unable to load order");
         navigate("/user/myorders");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchOrderDetails();
+    fetchOrder();
   }, [orderId, navigate]);
 
-  /* ================= CANCEL ORDER ================= */
-  const handleCancelOrder = async () => {
-    if (!confirm("Are you sure you want to cancel this order?")) return;
-
+  const cancelOrder = async () => {
+    if (!window.confirm("Cancel this order?")) return;
     setCancelling(true);
     try {
       const res = await api.put(`/api/order/user/cancel/${orderId}`);
       setOrder(res.data.order);
-      toast.success(res.data.message || "Order cancelled successfully");
-      // notify navbar / cart listeners in case cart was restored
-      window.dispatchEvent(new Event("cart-updated"));
-    } catch (err) {
-      console.error("Cancel Error Details:", err.response || err);
-      const errorMsg = err.response?.data?.message || err.message || "Failed to cancel order";
-      toast.error(errorMsg);
+      toast.success("Order cancelled");
+    } catch {
+      toast.error("Cancellation failed");
     } finally {
       setCancelling(false);
     }
   };
 
-  /* ================= LOADING ================= */
+  const copyId = () => {
+    navigator.clipboard.writeText(order._id);
+    toast.success("Order ID copied");
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <div className="w-14 h-14 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!order) {
-    return (
-      <div className="min-h-screen bg-[#050505] text-white pt-32">
-        <NavBar />
-        <div className="text-center text-gray-400">Order not found</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="w-10 h-10 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -84,200 +75,207 @@ const OrderDetails = () => {
   return (
     <>
       <NavBar />
-      <div className="min-h-screen bg-[#050505] text-white pt-32 px-6 md:px-12 pb-20">
-        <div className="max-w-4xl mx-auto">
-          {/* BACK BUTTON */}
-          <button
-            onClick={() => navigate("/user/myorders")}
-            className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300 mb-6 transition-colors"
-          >
-            <FaArrowLeft size={16} />
-            Back to Orders
-          </button>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-6 md:p-8"
-          >
-            {/* HEADER */}
-            <div className="mb-8">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-                <div>
-                  <p className="text-xs font-mono text-gray-500 mb-2">
-                    ORDER ID
-                  </p>
-                  <p className="text-xl font-bold text-cyan-400 break-all">
-                    {order._id.slice(0, 6)}
-                  </p>
-                </div>
-                <StatusBadge status={order.orderStatus} />
-              </div>
+      <div className="min-h-screen bg-[#050505] text-white pt-28 pb-20 px-4 md:px-8">
+        <div className="max-w-6xl mx-auto space-y-6">
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                <div className="bg-white/5 p-4 rounded-xl">
-                  <p className="text-xs font-mono text-gray-500 mb-2">
-                    ORDER DATE
-                  </p>
-                  <p className="font-bold">
-                    {new Date(order.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
+          {/* HEADER */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => navigate("/user/myorders")}
+              className="flex items-center gap-2 text-xs font-mono text-gray-400 hover:text-cyan-400"
+            >
+              <FaArrowLeft /> Back
+            </button>
+            <StatusBadge status={order.orderStatus} />
+          </div>
 
-                <div className="bg-white/5 p-4 rounded-xl">
-                  <p className="text-xs font-mono text-gray-500 mb-2">
-                    PAYMENT METHOD
-                  </p>
-                  <p className="font-bold">{order.paymentMethod}</p>
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                <div className="bg-white/5 p-4 rounded-xl">
-                  <p className="text-xs font-mono text-gray-500 mb-2">
-                    PAYMENT STATUS
-                  </p>
-                  <p
-                    className={`font-bold ${
-                      order.paymentStatus === "Paid"
-                        ? "text-green-400"
-                        : "text-yellow-400"
-                    }`}
+            {/* LEFT */}
+            <div className="lg:col-span-2 space-y-6">
+
+              {/* ORDER ID */}
+              <div className="relative bg-[#0b0b0b] border border-white/5 rounded-2xl p-6">
+                <p className="text-[10px] font-mono text-gray-500 mb-1">
+                  ORDER ID
+                </p>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-2xl font-bold truncate">
+                    #{order._id.slice(-10)}
+                  </h1>
+                  <button
+                    onClick={copyId}
+                    className="p-1.5 rounded-md hover:bg-white/5 text-gray-400"
                   >
-                    {order.paymentStatus}
-                  </p>
+                    <FaCopy size={13} />
+                  </button>
                 </div>
+                <FaReceipt className="absolute -top-4 -right-4 text-white/5 text-[90px]" />
+              </div>
 
-                <div className="bg-white/5 p-4 rounded-xl">
-                  <p className="text-xs font-mono text-gray-500 mb-2">
-                    TOTAL AMOUNT
-                  </p>
-                  <p className="text-xl font-bold text-cyan-400">
-                    ₹{order.totalAmount.toLocaleString()}
-                  </p>
+              {/* TRACKING */}
+              <div className="bg-[#0b0b0b] border border-white/5 rounded-2xl p-6">
+                <p className="text-[10px] font-mono text-gray-500 mb-5 flex items-center gap-2">
+                  <FaShippingFast className="text-cyan-400" /> ORDER STATUS
+                </p>
+
+                <div className="flex items-center justify-between">
+                  <OrderStep active label="Placed" />
+                  <Progress active={["Processing", "Shipped", "Delivered"].includes(order.orderStatus)} />
+                  <OrderStep active={["Processing", "Shipped", "Delivered"].includes(order.orderStatus)} label="Processing" />
+                  <Progress active={["Shipped", "Delivered"].includes(order.orderStatus)} />
+                  <OrderStep active={["Shipped", "Delivered"].includes(order.orderStatus)} label="Shipped" />
+                  <Progress active={order.orderStatus === "Delivered"} />
+                  <OrderStep active={order.orderStatus === "Delivered"} label="Delivered" />
                 </div>
               </div>
-            </div>
 
-            {/* ITEMS SECTION */}
-            <div className="mb-8">
-              <h2 className="text-xl font-bold mb-4">Order Items</h2>
-              <div className="space-y-4">
-                {order.items.map((item) => (
+              {/* ITEMS */}
+              <div className="space-y-3">
+                <p className="text-[10px] font-mono text-gray-500">
+                  ITEMS ({order.items.length})
+                </p>
+
+                {order.items.map((item, i) => (
                   <motion.div
                     key={item.product}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex gap-4 bg-black/30 rounded-xl p-4 border border-white/5"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className="flex items-center gap-4 bg-white/5 rounded-xl p-4"
                   >
                     <img
                       src={item.image}
-                      alt={item.name}
-                      className="w-24 h-24 object-contain rounded-lg bg-black"
+                      alt=""
+                      className="w-14 h-14 object-contain bg-black rounded-lg p-1"
                     />
 
                     <div className="flex-1">
-                      <h3 className="font-bold text-lg">{item.name}</h3>
-                      <p className="text-gray-400 text-sm mb-2">
-                        Price: ₹{item.price.toLocaleString()}
-                      </p>
-                      <p className="text-cyan-400 font-bold">
-                        Quantity: {item.quantity}
-                      </p>
-                      <p className="text-lg font-bold text-cyan-400 mt-2">
-                        Subtotal: ₹
-                        {(item.price * item.quantity).toLocaleString()}
-                      </p>
+                      <h3 className="text-sm font-semibold line-clamp-1">
+                        {item.name}
+                      </h3>
+                      <div className="flex gap-3 mt-1 text-xs font-mono text-gray-400">
+                        <span>₹{item.price}</span>
+                        <span>QTY {item.quantity}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-sm font-semibold text-cyan-400">
+                      ₹{item.price * item.quantity}
                     </div>
                   </motion.div>
                 ))}
               </div>
             </div>
 
-            {/* SHIPPING ADDRESS */}
-            <div className="mb-8">
-              <h2 className="text-xl font-bold mb-4">Delivery Address</h2>
-              <div className="bg-white/5 p-6 rounded-xl border border-white/10">
-                <p className="font-bold text-lg mb-2">
+            {/* RIGHT */}
+            <div className="space-y-6">
+
+              {/* ADDRESS */}
+              <div className="bg-cyan-500/5 border border-cyan-500/10 rounded-2xl p-6">
+                <p className="text-[10px] font-mono text-cyan-400 mb-3 flex items-center gap-2">
+                  <FaMapMarkerAlt /> SHIPPING
+                </p>
+                <p className="font-semibold text-sm">
                   {order.shippingAddress?.fullName}
                 </p>
-                <p className="text-gray-300 mb-1">
-                  {order.shippingAddress?.address}
+                <p className="text-xs font-mono text-gray-400 mt-1 leading-relaxed">
+                  {order.shippingAddress?.address}, {order.shippingAddress?.city},{" "}
+                  {order.shippingAddress?.state} - {order.shippingAddress?.pincode}
                 </p>
-                <p className="text-gray-300 mb-1">
-                  {order.shippingAddress?.city},{" "}
-                  {order.shippingAddress?.state} –{" "}
-                  {order.shippingAddress?.pincode}
-                </p>
-                <p className="text-gray-300">
-                  Phone: {order.shippingAddress?.phone}
+                <p className="text-xs font-mono text-gray-500 mt-2">
+                  {order.shippingAddress?.phone}
                 </p>
               </div>
-            </div>
 
-            {/* ACTIONS */}
-            <div className="flex gap-4">
-              <button
-                onClick={() => navigate("/user/myorders")}
-                className="flex-1 px-6 py-3 rounded-full border border-cyan-500/30 hover:bg-cyan-500 hover:text-black transition-all text-sm font-bold"
-              >
-                Back to Orders
-              </button>
+              {/* PAYMENT */}
+              <div className="bg-[#0b0b0b] border border-white/5 rounded-2xl p-6">
+                <p className="text-[10px] font-mono text-gray-500 mb-4">
+                  PAYMENT
+                </p>
 
-              {order.orderStatus === "Placed" && (
-                <button
-                  disabled={cancelling}
-                  onClick={handleCancelOrder}
-                  className="flex-1 px-6 py-3 rounded-full border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-black transition-all text-sm font-bold disabled:opacity-50"
-                >
-                  {cancelling ? "Cancelling..." : "Cancel Order"}
-                </button>
-              )}
+                <Row label="Method" value={order.paymentMethod} />
+                <Row
+                  label="Status"
+                  value={order.paymentStatus}
+                  valueClass={
+                    order.paymentStatus === "Paid"
+                      ? "text-green-400"
+                      : "text-yellow-400"
+                  }
+                />
+
+                <div className="h-px bg-white/5 my-4" />
+
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-mono text-gray-500">TOTAL</span>
+                  <span className="text-xl font-bold text-cyan-400">
+                    ₹{order.totalAmount}
+                  </span>
+                </div>
+
+                {order.orderStatus === "Placed" && (
+                  <button
+                    disabled={cancelling}
+                    onClick={cancelOrder}
+                    className="w-full mt-5 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500 hover:text-white"
+                  >
+                    {cancelling ? "Cancelling..." : "Cancel Order"}
+                  </button>
+                )}
+              </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
+
+      <Footer />
     </>
   );
 };
 
-/* ================= STATUS BADGE ================= */
-const StatusBadge = ({ status }) => {
-  const map = {
-    Placed: {
-      text: "Placed",
-      icon: <FaBox />,
-      className: "bg-yellow-500/10 text-yellow-400 border-yellow-400/30",
-    },
-    Processing: {
-      text: "Processing",
-      icon: <FaBox />,
-      className: "bg-blue-500/10 text-blue-400 border-blue-400/30",
-    },
-    Shipped: {
-      text: "Shipped",
-      icon: <FaTruck />,
-      className: "bg-blue-500/10 text-blue-400 border-blue-400/30",
-    },
-    Delivered: {
-      text: "Delivered",
-      icon: <FaCheckCircle />,
-      className: "bg-green-500/10 text-green-400 border-green-400/30",
-    },
-    Cancelled: {
-      text: "Cancelled",
-      icon: <FaTimesCircle />,
-      className: "bg-red-500/10 text-red-400 border-red-400/30",
-    },
-  };
+/* ================= HELPERS ================= */
 
-  const s = map[status] || map.Placed;
-
-  return (
+const OrderStep = ({ active, label }) => (
+  <div className="flex flex-col items-center">
     <div
-      className={`flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-bold uppercase ${s.className}`}
+      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs
+      ${active ? "bg-cyan-500 text-black" : "bg-black border border-white/10 text-gray-500"}`}
     >
-      {s.icon}
-      {s.text}
+      {active ? <FaCheckCircle size={10} /> : <FaBox size={10} />}
     </div>
+    <span className="mt-1 text-[9px] font-mono text-gray-500">
+      {label}
+    </span>
+  </div>
+);
+
+const Progress = ({ active }) => (
+  <div className="flex-1 h-[1.5px] bg-white/5 mx-1">
+    <div className={`h-full ${active ? "bg-cyan-500" : ""}`} />
+  </div>
+);
+
+const Row = ({ label, value, valueClass = "text-white" }) => (
+  <div className="flex justify-between text-xs text-gray-400 mb-2">
+    <span>{label}</span>
+    <span className={valueClass}>{value}</span>
+  </div>
+);
+
+const StatusBadge = ({ status }) => {
+  const colors = {
+    Placed: "text-yellow-400",
+    Processing: "text-blue-400",
+    Shipped: "text-purple-400",
+    Delivered: "text-green-400",
+    Cancelled: "text-red-400",
+  };
+  return (
+    <span className={`text-xs font-semibold ${colors[status]}`}>
+      {status}
+    </span>
   );
 };
 

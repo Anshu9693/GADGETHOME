@@ -22,3 +22,11 @@
 .admin-label {
   @apply text-sm text-gray-300 mb-1;
 }
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

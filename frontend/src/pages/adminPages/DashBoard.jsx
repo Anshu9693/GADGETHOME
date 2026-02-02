@@ -8,6 +8,7 @@ import {
   FaShoppingCart,
   FaRupeeSign,
   FaExclamationTriangle,
+  FaCalendarAlt,
 } from "react-icons/fa";
 import {
   LineChart,
@@ -17,6 +18,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 /* ================= ANIMATION ================= */
 const fadeUp = {
@@ -24,11 +27,7 @@ const fadeUp = {
   visible: (i = 1) => ({
     opacity: 1,
     y: 0,
-    transition: {
-      delay: i * 0.1,
-      duration: 0.6,
-      ease: "easeOut",
-    },
+    transition: { delay: i * 0.1, duration: 0.6, ease: "easeOut" },
   }),
 };
 
@@ -48,43 +47,36 @@ const getStatusStyle = (status) => {
   }
 };
 
-/* ================= REAL WEEKLY SALES CALCULATOR (FIXED) ================= */
-const getWeeklySalesData = (orders) => {
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-  // 1. Initialize structure
-  const weeklySales = days.map((day) => ({
-    name: day,
-    sales: 0,
-  }));
-
-  // 2. Determine the time range for the CURRENT week
-  const today = new Date();
-  
-  // Calculate the date of the most recent Sunday (Start of week)
-  const startOfWeek = new Date(today);
-  const dayOfWeek = today.getDay(); // 0 (Sun) to 6 (Sat)
-  startOfWeek.setDate(today.getDate() - dayOfWeek);
-  startOfWeek.setHours(0, 0, 0, 0); // Reset time to beginning of day
-
-  // Calculate the date of the coming Saturday (End of week)
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 6);
-  endOfWeek.setHours(23, 59, 59, 999); // Reset time to end of day
-
-  // 3. Process Orders
-  orders.forEach((order) => {
-    if (order.orderStatus !== "Cancelled") {
-      const orderDate = new Date(order.createdAt);
-
-      // ONLY count orders that happened between this Sunday and this Saturday
-      if (orderDate >= startOfWeek && orderDate <= endOfWeek) {
-        const dayIndex = orderDate.getDay();
-        weeklySales[dayIndex].sales += Number(order.totalAmount);
-      }
-    }
+/* ================= WEEKLY SALES CALCULATOR WITH DATES ================= */
+const getWeeklySalesData = (orders, startDate = null, endDate = null) => {
+  const filteredOrders = orders.filter((o) => {
+    if (!startDate || !endDate) return true;
+    const d = new Date(o.createdAt);
+    return d >= new Date(startDate.setHours(0, 0, 0, 0)) &&
+           d <= new Date(endDate.setHours(23, 59, 59, 999));
   });
 
+  const today = startDate ? new Date(startDate) : new Date();
+  const sunday = new Date(today);
+  sunday.setDate(sunday.getDate() - sunday.getDay());
+
+  const weeklySales = [];
+  for (let i = 0; i < 7; i++) {
+    const dayDate = new Date(sunday);
+    dayDate.setDate(sunday.getDate() + i);
+
+    const dayOrders = filteredOrders.filter(o => {
+      const orderDate = new Date(o.createdAt);
+      return orderDate.toDateString() === dayDate.toDateString() &&
+             o.orderStatus !== "Cancelled";
+    });
+
+    const sales = dayOrders.reduce((acc, o) => acc + Number(o.totalAmount), 0);
+    weeklySales.push({
+      date: dayDate.toLocaleDateString("en-GB"),
+      sales,
+    });
+  }
   return weeklySales;
 };
 
@@ -97,73 +89,71 @@ const AdminDashboard = () => {
   const [recentOrders, setRecentOrders] = useState([]);
   const [lowStock, setLowStock] = useState([]);
   const [salesData, setSalesData] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
 
-  /* ================= FETCH DASHBOARD DATA ================= */
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [filteredRevenue, setFilteredRevenue] = useState(0);
+  const [filteredOrdersCount, setFilteredOrdersCount] = useState(0);
+
+  /* ================= FETCH INITIAL DATA ================= */
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [
-          ordersRes,
-          productsRes,
-          usersRes,
-          revenueRes,
-        ] = await Promise.all([
-          axios.get(
-            `${import.meta.env.VITE_BACKEND_URL}/api/order/admin/allorder`,
-            { withCredentials: true }
-          ),
-          axios.get(
-            `${import.meta.env.VITE_BACKEND_URL}/api/products/admin/allproducts`,
-            { withCredentials: true }
-          ),
-          axios.get(
-            `${import.meta.env.VITE_BACKEND_URL}/api/admin/stats/total-users`,
-            { withCredentials: true }
-          ),
-          axios.get(
-            `${import.meta.env.VITE_BACKEND_URL}/api/admin/stats/total-revenue`,
-            { withCredentials: true }
-          ),
-        ]);
+        const [ordersRes, productsRes, usersRes, revenueRes] =
+          await Promise.all([
+            axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/order/admin/allorder`, { withCredentials: true }),
+            axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/products/admin/allproducts`, { withCredentials: true }),
+            axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/admin/stats/total-users`, { withCredentials: true }),
+            axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/admin/stats/total-revenue`, { withCredentials: true }),
+          ]);
 
         const orders = ordersRes.data.orders || [];
         const products = productsRes.data.products || [];
 
-        /* ===== RECENT ORDERS (SORT BY LAST UPDATE) ===== */
-        const sortedOrders = [...orders].sort(
-          (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
-        );
-
-        setTotalOrders(sortedOrders.length);
-        setRecentOrders(sortedOrders.slice(0, 5));
-
-        /* ===== REAL GRAPH DATA (FIXED) ===== */
-        setSalesData(getWeeklySalesData(orders));
-
-        /* ===== PRODUCTS ===== */
+        setAllOrders(orders);
+        setAllProducts(products);
         setTotalProducts(products.length);
         setLowStock(products.filter((p) => Number(p.stock) <= 10));
-
-        /* ===== USERS & REVENUE ===== */
         setTotalUsers(usersRes.data.totalUsers);
         setTotalRevenue(revenueRes.data.totalRevenue);
+
+        const validOrders = orders.filter((o) => o.orderStatus !== "Cancelled");
+        setTotalOrders(validOrders.length);
+
+        const sortedOrders = [...validOrders].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        setRecentOrders(sortedOrders.slice(0, 5));
+        setSalesData(getWeeklySalesData(validOrders));
       } catch (error) {
         console.error("Dashboard fetch error:", error);
       }
     };
-
     fetchDashboardData();
   }, []);
 
-  /* ================= STATS ================= */
+  const analyzeOrders = () => {
+    if (!startDate || !endDate) return;
+    const filtered = allOrders.filter((order) => {
+      const d = new Date(order.createdAt);
+      return (
+        d >= new Date(startDate.setHours(0, 0, 0, 0)) &&
+        d <= new Date(endDate.setHours(23, 59, 59, 999)) &&
+        order.orderStatus !== "Cancelled"
+      );
+    });
+    const revenue = filtered.reduce((acc, order) => acc + Number(order.totalAmount), 0);
+    setFilteredOrdersCount(filtered.length);
+    setFilteredRevenue(revenue);
+    setSalesData(getWeeklySalesData(filtered, startDate, endDate));
+    setRecentOrders(filtered.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 5));
+  };
+
   const stats = [
     { title: "Total Users", value: totalUsers, icon: <FaUsers /> },
     { title: "Total Orders", value: totalOrders, icon: <FaShoppingCart /> },
-    {
-      title: "Total Revenue",
-      value: `₹${totalRevenue}`,
-      icon: <FaRupeeSign />,
-    },
+    { title: "Total Profit", value: `₹${totalRevenue}`, icon: <FaRupeeSign /> },
     { title: "Total Products", value: totalProducts, icon: <FaBox /> },
   ];
 
@@ -171,28 +161,51 @@ const AdminDashboard = () => {
     <>
       <AdminNavbar />
 
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white px-6 py-10">
-        {/* ================= HEADER ================= */}
-        <motion.h1
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          className="text-4xl font-extrabold mb-10"
-        >
-          Admin Dashboard
-        </motion.h1>
+      {/* ================= SIDEBAR ================= */}
+      <div className={`fixed top-0 left-0 h-full w-96 bg-gradient-to-b from-gray-900/80 to-black/80 backdrop-blur-xl p-6 transition-transform z-50 shadow-2xl border-l-2 border-cyan-400/50 rounded-r-3xl ${showCalendar ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-cyan-400 flex items-center gap-3"><FaCalendarAlt /> Analyze Your Sell</h2>
+          <button onClick={() => setShowCalendar(false)} className="text-white text-2xl font-bold hover:text-red-500 transition">✕</button>
+        </div>
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl flex justify-between items-center shadow-lg border border-cyan-500/30">
+            <p className="text-sm text-gray-300">Total Orders</p>
+            <h3 className="text-xl font-bold text-cyan-400">{filteredOrdersCount || totalOrders}</h3>
+          </div>
+          <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl flex justify-between items-center shadow-lg border border-green-500/30">
+            <p className="text-sm text-gray-300">Total Revenue</p>
+            <h3 className="text-xl font-bold text-green-400">₹{filteredRevenue}</h3>
+          </div>
+        </div>
+        <div className="flex flex-col gap-4">
+          <div>
+            <p className="text-gray-400 text-sm mb-1">Start Date:</p>
+            <DatePicker selected={startDate} onChange={(date) => setStartDate(date)} dateFormat="dd/MM/yyyy" className="w-full px-3 py-2 rounded-lg bg-gray-800/60 text-white border border-cyan-400/50" />
+          </div>
+          <div>
+            <p className="text-gray-400 text-sm mb-1">End Date:</p>
+            <DatePicker selected={endDate} onChange={(date) => setEndDate(date)} dateFormat="dd/MM/yyyy" className="w-full px-3 py-2 rounded-lg bg-gray-800/60 text-white border border-cyan-400/50" />
+          </div>
+          <button onClick={analyzeOrders} className="mt-2 w-full py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold shadow-lg hover:scale-105 transition-transform duration-300">Analyze</button>
+        </div>
+      </div>
 
-        {/* ================= STATS ================= */}
+      {/* ================= MAIN DASHBOARD ================= */}
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white px-6 py-10">
+        
+        {/* ✅ FIXED TO BOTTOM RIGHT */}
+        <motion.button
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="fixed bottom-10 right-10 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-4 rounded-2xl shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:scale-110 hover:shadow-cyan-400/60 transition-all z-40 flex items-center gap-2 font-bold border border-white/10"
+          onClick={() => setShowCalendar(!showCalendar)}
+        >
+          <FaCalendarAlt /> Analyze Your Sell
+        </motion.button>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {stats.map((item, i) => (
-            <motion.div
-              key={item.title}
-              custom={i}
-              initial="hidden"
-              animate="visible"
-              variants={fadeUp}
-              className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex items-center gap-4"
-            >
+            <motion.div key={item.title} custom={i} initial="hidden" animate="visible" variants={fadeUp} className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex items-center gap-4">
               <div className="text-3xl text-cyan-400">{item.icon}</div>
               <div>
                 <p className="text-gray-400 text-sm">{item.title}</p>
@@ -202,104 +215,57 @@ const AdminDashboard = () => {
           ))}
         </div>
 
-        {/* ================= REAL SALES GRAPH ================= */}
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={fadeUp}
-          className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 mb-12"
-        >
-          <h2 className="text-xl font-semibold mb-6">Weekly Sales (Current Week)</h2>
+        <motion.div initial="hidden" animate="visible" variants={fadeUp} className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 mb-12 shadow-lg">
+          <h2 className="text-xl font-semibold mb-6">Weekly Sales</h2>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={salesData}>
-              <XAxis dataKey="name" stroke="#aaa" />
+              <XAxis dataKey="date" stroke="#aaa" />
               <YAxis stroke="#aaa" />
-              <Tooltip 
-                contentStyle={{ backgroundColor: "#333", border: "none", color: "#fff" }}
-              />
-              <Line
-                type="monotone"
-                dataKey="sales"
-                stroke="#22d3ee"
-                strokeWidth={3}
-                dot={{ fill: "#22d3ee", r: 4 }}
-                activeDot={{ r: 8 }}
-              />
+              <Tooltip contentStyle={{ backgroundColor: "#111", border: "none", color: "#fff" }} />
+              <Line type="monotone" dataKey="sales" stroke="#22d3ee" strokeWidth={3} dot={{ fill: "#22d3ee", r: 5, stroke: "#0f172a", strokeWidth: 2 }} activeDot={{ r: 8 }} />
             </LineChart>
           </ResponsiveContainer>
         </motion.div>
 
-        {/* ================= BOTTOM SECTION ================= */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* ===== RECENT ORDERS ===== */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            className="lg:col-span-2 bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6"
-          >
+          <motion.div initial="hidden" animate="visible" variants={fadeUp} className="lg:col-span-2 bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-lg">
             <h2 className="text-xl font-semibold mb-4">Recent Orders</h2>
-
-            <table className="w-full text-sm">
-              <thead className="text-gray-400 border-b border-white/10">
-                <tr>
-                  <th className="text-left py-2">Order ID</th>
-                  <th>User</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {recentOrders.map((order) => (
-                  <tr key={order._id} className="border-b border-white/5">
-                    <td className="py-3">#{order._id.slice(-6)}</td>
-                    <td className="text-center">
-                      {order.user?.fullName || "User"}
-                    </td>
-                    <td className="text-center">₹{order.totalAmount}</td>
-                    <td className="text-center">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(
-                          order.orderStatus
-                        )}`}
-                      >
-                        {order.orderStatus}
-                      </span>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="text-gray-400 border-b border-white/10">
+                  <tr>
+                    <th className="text-left py-2">Order ID</th>
+                    <th>User</th>
+                    <th>Amount</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {recentOrders.map((order) => (
+                    <tr key={order._id} className="border-b border-white/5">
+                      <td className="py-3">#{order._id.slice(-12)}</td>
+                      <td className="text-center">{order.user?.fullName || "User"}</td>
+                      <td className="text-center">₹{order.totalAmount}</td>
+                      <td className="text-center">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(order.orderStatus)}`}>{order.orderStatus}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </motion.div>
 
-          {/* ===== LOW STOCK ===== */}
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={fadeUp}
-            className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6"
-          >
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <FaExclamationTriangle className="text-red-400" />
-              Low Stock Alerts
-            </h2>
-
+          <motion.div initial="hidden" animate="visible" variants={fadeUp} className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-lg">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2"><FaExclamationTriangle className="text-red-400" /> Low Stock Alerts</h2>
             {lowStock.length === 0 ? (
-              <p className="text-gray-400 text-sm">
-                All products are sufficiently stocked 🎉
-              </p>
+              <p className="text-gray-400 text-sm">All products are sufficiently stocked 🎉</p>
             ) : (
               <ul className="space-y-3">
                 {lowStock.map((item) => (
-                  <li
-                    key={item._id}
-                    className="flex justify-between text-sm"
-                  >
+                  <li key={item._id} className="flex justify-between text-sm">
                     <span>{item.name}</span>
-                    <span className="text-red-400">
-                      {item.stock} left
-                    </span>
+                    <span className="text-red-400">{item.stock} left</span>
                   </li>
                 ))}
               </ul>

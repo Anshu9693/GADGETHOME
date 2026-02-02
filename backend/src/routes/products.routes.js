@@ -26,7 +26,7 @@ const upload = multer({
 router.get("/user/allproducts", 
   // userAuthMiddleware, 
   getAllProducts);
-router.get("/user/featured", userAuthMiddleware, getFeaturedProducts);
+router.get("/user/featured", getFeaturedProducts);
 
 // [GET /api/products/user/search?q=smart bulb]
 router.get("/user/search", userAuthMiddleware, searchProducts );
@@ -56,5 +56,7 @@ router.put(
 );
 
 router.delete("/deleteproduct/:productId", adminAuthMiddleware, deleteProduct);
+
+
 
 export default router;

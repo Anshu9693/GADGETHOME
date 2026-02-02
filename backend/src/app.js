@@ -10,6 +10,7 @@ import productsRoutes from "./routes/products.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import adminStatsRoutes from "./routes/adminStats.routes.js";
+import analyticsRoutes from "./routes/analytics.routes.js";
 import categoryRoutes from "./routes/category.routes.js";
 import stripeRoutes from "./routes/stripe.routes.js";
 import { stripeWebhook } from "./controllers/stripe.webhook.js";
@@ -51,6 +52,8 @@ app.use("/api/reviews", reviewRoutes)
 app.use("/api/order",orderRoutes)
 app.use("/api/categories", categoryRoutes)
 app.use("/api/admin/stats", adminStatsRoutes);
+app.use("/api/analytics", analyticsRoutes);
+
 
 app.get("/", (req, res) => {
   res.send("hello");
