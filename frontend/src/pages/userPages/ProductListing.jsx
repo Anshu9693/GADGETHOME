@@ -161,7 +161,7 @@ const ProductListing = () => {
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-black/80 backdrop-blur-2xl border border-cyan-500/20 p-5 rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col gap-4 w-[300px]"
+                className="bg-black/80 backdrop-blur-2xl border border-cyan-500/20 p-5 rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col gap-4 w-[280px] md:w-[300px]"
               >
                 <div className="relative">
                   <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500/50" />
@@ -207,10 +207,10 @@ const ProductListing = () => {
           </motion.button>
         </div>
 
-        {/* GRID SECTION */}
+        {/* GRID SECTION - CHANGED TO 1 COLUMN FOR MOBILE (LIKE FEATURED PAGE) */}
         <div className="max-w-[1400px] mx-auto">
           {loading && products.length === 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="h-[450px] rounded-[2.5rem] bg-white/5 animate-pulse" />
               ))}
@@ -220,7 +220,7 @@ const ProductListing = () => {
               variants={pageVariants}
               initial="hidden"
               animate="visible"
-              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8"
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8"
             >
               {filteredProducts.length === 0 ? (
                 <div className="col-span-full py-32 text-center">
@@ -233,11 +233,12 @@ const ProductListing = () => {
                     key={product._id}
                     variants={cardVariants}
                     layout
+                    whileHover={{ scale: 1.03 }}
                     onClick={() => navigate(`/user/productDetail/${product._id}`)}
-                    className="group relative flex flex-col bg-[#0b0b0b] border border-white/5 rounded-[2.5rem] overflow-hidden hover:border-cyan-500/30 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+                    className="group relative flex flex-col bg-white/5 border border-white/10 rounded-[2.5rem] p-6 overflow-hidden hover:border-cyan-500/30 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
                   >
                     {/* IMAGE AREA */}
-                    <div className="relative h-56 md:h-64 p-6 flex items-center justify-center bg-gradient-to-b from-neutral-900/40 to-transparent">
+                    <div className="relative h-56 md:h-60 flex items-center justify-center mb-6">
                       <img
                         src={product.images[0]}
                         alt={product.name}
@@ -245,48 +246,45 @@ const ProductListing = () => {
                       />
 
                       {/* QUICK ACTIONS */}
-                      <div className="absolute top-4 right-4 flex flex-col gap-2 z-20 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+                      <div className="absolute top-0 right-0 flex gap-2">
                         <button
                           onClick={(e) => toggleWishlist(e, product._id)}
-                          className="p-3 bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 hover:border-red-500/50 transition-colors"
+                          className="w-11 h-11 bg-black/60 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/10 hover:border-red-500/50 transition-colors"
                         >
-                          {wishlist.includes(product._id) ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
+                          {wishlist.includes(product._id) ? <FaHeart className="text-red-500" /> : <FaRegHeart className="text-white" />}
                         </button>
                         <button
                           onClick={(e) => handleShare(e, product._id)}
-                          className="p-3 bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 hover:border-cyan-500/50 transition-colors"
+                          className="w-11 h-11 bg-black/60 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/10 hover:border-cyan-500/50 transition-colors"
                         >
-                          <FaShareAlt className="text-xs" />
+                          <FaShareAlt className="text-white text-xs" />
                         </button>
                       </div>
                     </div>
 
                     {/* TEXT AREA */}
-                    <div className="p-6 pt-0 flex flex-col flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="h-[1px] w-4 bg-cyan-500/50"></span>
-                        <p className="text-cyan-500 font-mono text-[9px] uppercase tracking-[0.3em]">
-                          {product.brand}
-                        </p>
-                      </div>
+                    <div className="flex flex-col flex-1">
+                      <p className="text-cyan-400 text-[10px] font-black uppercase mb-1 tracking-[0.2em]">
+                        {product.brand}
+                      </p>
 
-                      <h3 className="font-bold text-base md:text-lg line-clamp-1 uppercase tracking-tight group-hover:text-cyan-400 transition-colors duration-300">
+                      <h3 className="font-bold text-xl line-clamp-2 uppercase tracking-tight group-hover:text-cyan-400 transition-colors duration-300">
                         {product.name}
                       </h3>
 
-                      <p className="text-[11px] text-gray-500 line-clamp-2 mt-2 font-medium leading-relaxed">
+                      <p className="text-[12px] text-gray-400 line-clamp-2 mt-2 mb-4 leading-relaxed">
                         {product.description}
                       </p>
 
-                      <div className="mt-auto pt-6 flex justify-between items-center border-t border-white/5">
+                      <div className="mt-auto pt-4 flex justify-between items-center border-t border-white/10">
                         <div className="flex flex-col">
                           {product.discountPrice ? (
                             <>
-                              <span className="text-[10px] line-through text-gray-600 font-bold">₹{product.price}</span>
-                              <span className="text-xl md:text-2xl font-black text-white italic">₹{product.discountPrice}</span>
+                              <span className="text-xl font-black text-cyan-400 italic">₹{product.discountPrice.toLocaleString()}</span>
+                              <span className="text-sm text-gray-500 line-through font-bold">₹{product.price.toLocaleString()}</span>
                             </>
                           ) : (
-                            <span className="text-xl md:text-2xl font-black text-white italic">₹{product.price}</span>
+                            <span className="text-xl font-black text-white italic">₹{product.price.toLocaleString()}</span>
                           )}
                         </div>
 
@@ -294,7 +292,7 @@ const ProductListing = () => {
                           onClick={(e) => handleAddToCart(e, product._id)}
                           className="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center hover:bg-cyan-500 hover:scale-105 transition-all active:scale-95 shadow-lg"
                         >
-                          <FaShoppingCart size={16} />
+                          <FaShoppingCart size={18} />
                         </button>
                       </div>
                     </div>

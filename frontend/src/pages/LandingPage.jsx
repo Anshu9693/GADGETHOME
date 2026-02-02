@@ -490,129 +490,149 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="py-24 relative overflow-hidden bg-gradient-to-br from-[#0b0b0b] via-[#120c08] to-[#070707]">
-        <div className="absolute -top-24 -left-24 w-[500px] h-[500px] bg-orange-500/10 blur-[180px] rounded-full" />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-amber-400/10 blur-[160px] rounded-full" />
+     <section className="py-16 md:py-24 relative overflow-hidden bg-gradient-to-br from-[#0b0b0b] via-[#120c08] to-[#070707]">
+  {/* Background Glows */}
+  <div className="absolute -top-24 -left-24 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-orange-500/10 blur-[120px] md:blur-[180px] rounded-full" />
+  <div className="absolute bottom-0 right-0 w-[250px] md:w-[400px] h-[250px] md:h-[400px] bg-amber-400/10 blur-[100px] md:blur-[160px] rounded-full" />
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          {/* HEADER */}
-          <div className="flex justify-between items-end mb-16 border-l-4 border-orange-400 pl-6">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-60" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400" />
-                </span>
-                <span className="text-orange-300 font-mono text-[10px] uppercase tracking-[0.45em] bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
-                  Live_Trending_Data
-                </span>
-              </div>
+  <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
+    {/* HEADER */}
+    <div className="flex justify-between items-end mb-10 md:mb-16 border-l-4 border-orange-400 pl-4 md:pl-6">
+      <div>
+        <div className="flex items-center gap-3 mb-3">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-60" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400" />
+          </span>
+          <span className="text-orange-300 font-mono text-[9px] md:text-[10px] uppercase tracking-[0.3em] md:tracking-[0.45em] bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
+            Live_Trending_Data
+          </span>
+        </div>
 
-              <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-[#f5f5f5] leading-tight">
-                Best{" "}
-                <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 text-transparent bg-clip-text italic">
-                  Selling.
-                </span>
-              </h2>
-            </div>
+        <h2 className="text-3xl md:text-6xl font-black uppercase tracking-tighter text-[#f5f5f5] leading-tight">
+          Best{" "}
+          <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 text-transparent bg-clip-text italic">
+            Selling.
+          </span>
+        </h2>
+      </div>
 
-            <Link
-              to="/user/bestselling"
-              className="group text-[10px] font-black text-orange-300/60 hover:text-orange-400 uppercase tracking-[0.25em] mb-2 flex items-center gap-2 transition-all"
-            >
-              Analyze All
-              <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
+      <Link
+        to="/user/bestselling"
+        className="group text-[9px] md:text-[10px] font-black text-orange-300/60 hover:text-orange-400 uppercase tracking-[0.2em] md:tracking-[0.25em] mb-2 flex items-center gap-2 transition-all whitespace-nowrap"
+      >
+        <span className="hidden sm:inline">Analyze All</span>
+        <span className="sm:hidden">View All</span>
+        <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
+      </Link>
+    </div>
 
-          {/* SLIDER */}
-          <div className="relative overflow-hidden">
+    {/* SLIDER CONTAINER */}
+    <div className="relative overflow-visible md:overflow-hidden">
+      <motion.div
+        className="flex gap-4 md:gap-6 cursor-grab active:cursor-grabbing"
+        drag="x"
+        dragConstraints={{ right: 0, left: -2000 }} // Mobile drag support
+        animate={window.innerWidth > 768 ? { x: ["0%", "-50%"] } : {}} // Desktop auto-scroll only
+        transition={{
+          repeat: Infinity,
+          duration: 30,
+          ease: "linear",
+        }}
+        style={{ 
+          display: 'flex',
+          width: 'max-content',
+          touchAction: 'pan-y' // Allows vertical scrolling of page while touching slider
+        }}
+      >
+        {/* Double array for infinite effect on desktop */}
+        {[...bestSelling, ...bestSelling].map((item, index) => {
+          const product = item.product;
+          if (!product) return null;
+
+          return (
             <motion.div
-              className="flex gap-6"
-              animate={{ x: ["0%", "-50%"] }}
-              transition={{
-                repeat: Infinity,
-                duration: 30,
-                ease: "linear",
-              }}
-            >
-              {[...bestSelling, ...bestSelling].map((item, index) => {
-                const product = item.product;
-                if (!product) return null;
-
-                return (
-                  <motion.div
-                    key={`${product._id}-${index}`}
-                    onClick={() => navigate("/user/bestselling")}
-                    whileHover={{ y: -12, scale: 1.03 }}
-                    className="min-w-[280px] md:min-w-[320px] lg:min-w-[340px]
-              h-[420px] group rounded-[2.4rem] overflow-hidden 
+              key={`${product._id}-${index}`}
+              onClick={() => navigate(`/user/productDetail/${product._id}`)}
+              whileHover={{ y: -10, scale: 1.02 }}
+              className="w-[260px] sm:w-[300px] md:w-[340px]
+              h-[380px] md:h-[420px] group rounded-[2rem] md:rounded-[2.4rem] overflow-hidden 
               bg-gradient-to-br from-[#151515] via-[#1a120d] to-[#0e0e0e]
               border border-orange-500/10 hover:border-orange-400/40
-              backdrop-blur-xl transition-all duration-500 relative"
+              backdrop-blur-xl transition-all duration-500 relative flex-shrink-0"
+            >
+              {/* Rank Badge */}
+              <div className="absolute top-4 left-4 z-20">
+                <div className="bg-gradient-to-r from-orange-400 to-amber-300 text-black text-[9px] md:text-[10px] font-black px-3 py-1 rounded-lg shadow-lg">
+                  #{(index % bestSelling.length) + 1}
+                </div>
+              </div>
+
+              {/* IMAGE AREA */}
+              <div className="h-1/2 md:h-2/3 p-6 md:p-8 flex items-center justify-center relative">
+                <div className="absolute inset-0 bg-gradient-to-b from-orange-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <img
+                  src={product.images?.[0]}
+                  alt={product.name}
+                  className="max-w-[80%] max-h-full object-contain saturate-90 contrast-110 group-hover:saturate-125 group-hover:scale-110 transition-all duration-700 z-10"
+                />
+              </div>
+
+              {/* CONTENT AREA */}
+              <div className="absolute bottom-0 left-0 w-full p-5 md:p-6 bg-gradient-to-t from-[#080808] via-[#0f0f0f]/95 to-transparent">
+                <span className="inline-flex items-center gap-1 text-[9px] md:text-[10px] font-bold text-amber-300 uppercase mb-1 md:mb-2">
+                  🔥 {item.totalSold}+ Sold
+                </span>
+
+                <h3 className="text-xs md:text-sm font-bold mb-3 md:mb-4 uppercase truncate text-[#eaeaea] group-hover:text-amber-300 transition-colors">
+                  {product.name}
+                </h3>
+
+                <div className="flex justify-between items-center group-hover:translate-y-[-4px] transition-all duration-500">
+                  <div>
+                    <span className="text-[9px] md:text-[10px] text-orange-300/40 line-through">
+                      ₹{(product.price * 1.2).toFixed(0)}
+                    </span>
+                    <div className="text-lg md:text-xl font-black italic text-[#fdf4e7] tracking-tight">
+                      ₹{product.price.toLocaleString()}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevents card click
+                      navigate(`/user/productDetail/${product._id}`);
+                    }}
+                    className="bg-gradient-to-br from-orange-400 to-amber-300 text-black p-2.5 md:p-3 rounded-xl hover:scale-110 transition-all duration-300 shadow-xl shadow-orange-900/40"
                   >
-                    {/* Rank */}
-                    <div className="absolute top-4 left-4 z-20">
-                      <div className="bg-gradient-to-r from-orange-400 to-amber-300 text-black text-[10px] font-black px-3 py-1 rounded-lg shadow-lg">
-                        #{(index % bestSelling.length) + 1}
-                      </div>
-                    </div>
+                    <FaShoppingCart size={12} />
+                  </button>
+                </div>
+              </div>
 
-                    {/* IMAGE */}
-                    <div className="h-2/3 p-8 flex items-center justify-center relative">
-                      <div className="absolute inset-0 bg-gradient-to-b from-orange-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-                      <img
-                        src={product.images?.[0]}
-                        alt={product.name}
-                        className="max-w-full max-h-full object-contain 
-                  saturate-90 contrast-110
-                  group-hover:saturate-125 group-hover:scale-110 
-                  transition-all duration-700 z-10"
-                      />
-                    </div>
-
-                    {/* CONTENT */}
-                    <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-[#080808] via-[#0f0f0f]/90 to-transparent">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-300 uppercase mb-2">
-                        🔥 {item.totalSold}+ Sold
-                      </span>
-
-                      <h3 className="text-sm font-bold mb-4 uppercase truncate text-[#eaeaea] group-hover:text-amber-300 transition-colors">
-                        {product.name}
-                      </h3>
-
-                      <div className="flex justify-between items-center translate-y-2 group-hover:translate-y-0 transition-all duration-500">
-                        <div>
-                          <span className="text-[10px] text-orange-300/40 line-through">
-                            ₹{(product.price * 1.2).toFixed(0)}
-                          </span>
-                          <div className="text-xl font-black italic text-[#fdf4e7] tracking-tight">
-                            ₹{product.price.toLocaleString()}
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() =>
-                            navigate(`/user/productDetail/${product._id}`)
-                          }
-                          className="bg-gradient-to-br from-orange-400 to-amber-300 text-black p-3 rounded-xl 
-                    hover:scale-110 transition-all duration-300 shadow-xl shadow-orange-900/40"
-                        >
-                          <FaShoppingCart size={13} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Glow Border */}
-                    <div className="absolute inset-0 rounded-[2.4rem] ring-1 ring-orange-400/10 group-hover:ring-orange-400/30 transition-all" />
-                  </motion.div>
-                );
-              })}
+              {/* Glow Border */}
+              <div className="absolute inset-0 rounded-[2rem] md:rounded-[2.4rem] ring-1 ring-orange-400/10 group-hover:ring-orange-400/30 transition-all" />
             </motion.div>
-          </div>
-        </div>
-      </section>
+          );
+        })}
+      </motion.div>
+    </div>
+  </div>
+
+  {/* CSS for better mobile experience */}
+  <style>{`
+    @media (max-width: 768px) {
+      .flex {
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+      }
+      .flex::-webkit-scrollbar {
+        display: none;
+      }
+    }
+  `}</style>
+</section>
 
       {/* 6. INNOVATION HUB (INTACT) */}
       <section className="py-16 sm:py-24 md:py-32 bg-[#020617] relative overflow-hidden">

@@ -59,6 +59,17 @@ const ProductDetails = () => {
     }
   };
 
+  const handleAddToCart = async () => {
+    try {
+      // Make API request to add product to cart
+      await api.post("/api/cart/add", { productId: id });
+      toast.success("Added to cart 🛒");
+    } catch (err) {
+      // If user is not logged in, redirect to login
+      navigate("/user/signin");
+    }
+  };
+
   /* ================= WISHLIST ================= */
   const toggleWishlist = async () => {
     try {
@@ -162,7 +173,10 @@ const ProductDetails = () => {
 
               {/* ACTION BUTTONS */}
               <div className="flex gap-3">
-                <button className="flex-1 h-14 bg-white text-black rounded-xl font-black flex items-center justify-center gap-2 hover:bg-cyan-500 transition-all">
+                <button
+                  onClick={handleAddToCart}
+                  className="flex-1 h-14 bg-white text-black rounded-xl font-black flex items-center justify-center gap-2 hover:bg-cyan-500 transition-all"
+                >
                   <FaShoppingCart />
                   ADD TO CART
                 </button>

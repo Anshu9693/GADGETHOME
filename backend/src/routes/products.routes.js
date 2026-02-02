@@ -32,7 +32,9 @@ router.get("/user/featured", getFeaturedProducts);
 router.get("/user/search", userAuthMiddleware, searchProducts );
 // [GET /api/products/user/category/Smart Lighting]
 router.get("/user/category/:category", userAuthMiddleware, getProductsByCategory);
-router.get("/user/:productId", userAuthMiddleware, getSingleProduct);
+router.get("/user/:productId",
+  //  userAuthMiddleware, 
+   getSingleProduct);
 
 
 // ---------- ADMIN ROUTES ----------
