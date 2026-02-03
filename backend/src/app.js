@@ -17,10 +17,20 @@ import { stripeWebhook } from "./controllers/stripe.webhook.js";
 import dotenv from "dotenv";
 dotenv.config();
 const app = express();
+// CORS: allow multiple origins via ALLOWED_ORIGINS env (comma-separated)
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || "").split(",").map((s) => s.trim()).filter(Boolean);
+console.log("Allowed CORS origins:", allowedOrigins);
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL, // e.g. http://localhost:5173
-    credentials: true,
-  }));
+  origin: (origin, callback) => {
+    // Allow non-browser requests (e.g., curl, server-to-server) when origin is undefined
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.length === 0) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error(`CORS policy: origin ${origin} not allowed`), false);
+  },
+  credentials: true,
+}));
 
 // DB
 connectDB();

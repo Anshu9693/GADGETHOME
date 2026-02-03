@@ -342,24 +342,74 @@ const FilterDrawer = ({
             </button>
           </div>
 
-          <div className="space-y-6">
-            <input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="PRODUCT NAME"
-              className="w-full bg-black border border-white/10 rounded-xl 
-              py-3 px-4 text-[11px] font-mono uppercase tracking-widest 
-              focus:border-cyan-500 outline-none"
-            />
+         <div className="space-y-6 bg-white/5 p-6 rounded-[2rem] border border-white/10 backdrop-blur-md">
+  {/* Search Bar Sector */}
+  <div className="relative group">
+    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+      <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse" />
+    </div>
+    <input
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      placeholder="SEARCH PRODUCT ARCHIVE..."
+      className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-10 pr-4 text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400 placeholder:text-gray-600 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all outline-none"
+    />
+  </div>
 
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+  {/* Date Range Sector */}
+  <div className="grid grid-cols-2 gap-3">
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest ml-1">Arrival_Start</label>
+      <input 
+        type="date" 
+        value={startDate} 
+        onChange={(e) => setStartDate(e.target.value)}
+        className="bg-white/5 border border-white/10 rounded-xl py-3 px-3 text-[10px] font-mono text-gray-300 uppercase outline-none focus:border-cyan-500/40 custom-calendar-icon" 
+      />
+    </div>
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest ml-1">Arrival_End</label>
+      <input 
+        type="date" 
+        value={endDate} 
+        onChange={(e) => setEndDate(e.target.value)} 
+        className="bg-white/5 border border-white/10 rounded-xl py-3 px-3 text-[10px] font-mono text-gray-300 uppercase outline-none focus:border-cyan-500/40 custom-calendar-icon"
+      />
+    </div>
+  </div>
 
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-            </select>
-          </div>
+  {/* Sort & Action Sector */}
+  <div className="relative">
+    <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest ml-1 mb-1.5 block">Sequence_Order</label>
+    <select 
+      className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 px-4 text-[10px] font-bold uppercase tracking-widest text-cyan-500 outline-none appearance-none cursor-pointer focus:border-cyan-500/40 transition-all"
+      value={sortBy} 
+      onChange={(e) => setSortBy(e.target.value)}
+    >
+      <option className="bg-[#0f0f0f] text-white" value="newest">Recent_Units</option>
+      <option className="bg-[#0f0f0f] text-white" value="oldest">Legacy_Units</option>
+      <option className="bg-[#0f0f0f] text-white" value="price-low">Credit_Min</option>
+      <option className="bg-[#0f0f0f] text-white" value="price-high">Credit_Max</option>
+    </select>
+    {/* Custom Arrow for Select */}
+    <div className="absolute right-4 bottom-4 pointer-events-none text-cyan-500/50">
+      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
+      </svg>
+    </div>
+  </div>
+
+  <style jsx>{`
+    .custom-calendar-icon::-webkit-calendar-picker-indicator {
+      filter: invert(1) sepia(100%) saturate(500%) hue-rotate(150deg);
+      cursor: pointer;
+      opacity: 0.6;
+    }
+    .custom-calendar-icon::-webkit-calendar-picker-indicator:hover {
+      opacity: 1;
+    }
+  `}</style>
+</div>
 
           <button
             onClick={resetFilters}

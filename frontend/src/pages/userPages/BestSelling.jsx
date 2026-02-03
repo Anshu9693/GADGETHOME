@@ -13,6 +13,7 @@ import { toast } from "react-hot-toast";
 import NavBar from "../../components/User/NavBar.jsx";
 import AuthFooter from "../../components/User/AuthFooter.jsx";
 import Footer from "../../components/User/Footer.jsx";
+import Filter from "../../components/User/Filter.jsx";
 
 /* ================= AXIOS ================= */
 const api = axios.create({
@@ -74,6 +75,30 @@ const BestSelling = () => {
     fetchWishlist();
   }, []);
 
+  // Filter state and derived lists
+  const [filters, setFilters] = useState({});
+  const rawProducts = products.map((item) => item.product).filter(Boolean);
+
+  const filtered = (() => {
+    let res = [...rawProducts];
+    const { priceRange, brands, categories, connectivity } = filters || {};
+    if (priceRange) {
+      res = res.filter((p) => {
+        const price = p.discountPrice ?? p.price ?? 0;
+        return price >= (priceRange[0] ?? -Infinity) && price <= (priceRange[1] ?? Infinity);
+      });
+    }
+    if (brands && brands.length) res = res.filter((p) => brands.includes(p.brand));
+    if (categories && categories.length) res = res.filter((p) => categories.includes(p.category));
+    if (connectivity && connectivity.length) res = res.filter((p) => {
+      const conn = p.connectivity;
+      if (!conn) return false;
+      if (Array.isArray(conn)) return conn.some((c) => connectivity.includes(c));
+      return connectivity.includes(conn);
+    });
+    return res;
+  })();
+
   /* ================= SHARE ================= */
   const handleShare = (e, productId) => {
     e.stopPropagation();
@@ -106,7 +131,8 @@ const BestSelling = () => {
         setWishlist([...wishlist, productId]);
       }
     } catch {
-      toast.error("Wishlist action failed");
+      toast.error("Login first to manage wishlist");
+
     }
   };
 
@@ -127,115 +153,118 @@ const BestSelling = () => {
           {loading ? (
             <p className="text-gray-400">Loading best sellers...</p>
           ) : (
-            <motion.div
-              variants={pageVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8"
-            >
-              {products.slice(0, 6).map((item, index)=> {
-                const product = item.product;
-                if (!product) return null;
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div className="hidden md:block md:col-span-1">
+                <Filter products={rawProducts} onChange={setFilters} />
+              </div>
 
-                return (
-                  <motion.div
-                    key={product._id}
-                    variants={cardVariants}
-                    whileHover={{ y: -6 }}
-                    onClick={() =>
-                      isLoggedIn
-                        ? navigate(`/user/productDetail/${product._id}`)
-                        : navigate("/user/signin")
-                    }
-                    className="relative bg-[#0b0b0b] border border-white/5 rounded-2xl overflow-hidden cursor-pointer group"
-                  >
-                    {/* ===== RANK BADGE ===== */}
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="px-3 py-1 text-xs font-black rounded-full bg-orange-500 text-black">
-                        #{index + 1} BEST
-                      </span>
-                    </div>
+              <div className="md:col-span-3">
+                <motion.div
+                  variants={pageVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8"
+                >
+                  {filtered.slice(0, 6).map((product, index) => {
+                    if (!product) return null;
 
-                    {/* ===== IMAGE ===== */}
-                    <div className="relative aspect-square overflow-hidden bg-neutral-900/50">
-                      <img
-                        src={product.images[0]}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition"
-                      />
-
-                      {/* ACTIONS */}
-                      <div className="absolute top-3 right-3 flex gap-2 z-10">
-                        <button
-                          onClick={(e) =>
-                            toggleWishlist(e, product._id)
-                          }
-                          className="p-2 bg-black/50 rounded-xl border border-white/10"
-                        >
-                          {wishlist.includes(product._id) ? (
-                            <FaHeart className="text-red-500" />
-                          ) : (
-                            <FaRegHeart />
-                          )}
-                        </button>
-
-                        <button
-                          onClick={(e) =>
-                            handleShare(e, product._id)
-                          }
-                          className="p-2 bg-black/50 rounded-xl border border-white/10 hover:bg-cyan-500"
-                        >
-                          <FaShareAlt />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* ===== INFO ===== */}
-                    <div className="p-4 flex flex-col">
-                      <p className="text-cyan-500 text-[10px] font-black uppercase">
-                        {product.brand}
-                      </p>
-
-                      <h3 className="text-sm font-bold line-clamp-2 mb-1">
-                        {product.name}
-                      </h3>
-
-                      <p className="text-xs text-gray-400 mb-2">
-                        🔥 Sold {item.totalSold} times
-                      </p>
-
-                      <div className="flex justify-between items-center mt-auto pt-3 border-t border-white/5">
-                        <div>
-                          {product.discountPrice ? (
-                            <>
-                              <span className="text-lg font-black text-cyan-400">
-                                ₹{product.discountPrice}
-                              </span>
-                              <span className="block text-xs line-through text-gray-500">
-                                ₹{product.price}
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-lg font-black">
-                              ₹{product.price}
-                            </span>
-                          )}
+                    return (
+                      <motion.div
+                        key={product._id}
+                        variants={cardVariants}
+                        whileHover={{ y: -6 }}
+                        onClick={() =>
+                          isLoggedIn
+                            ? navigate(`/user/productDetail/${product._id}`)
+                            : navigate("/user/signin")
+                        }
+                        className="relative bg-[#0b0b0b] border border-white/5 rounded-xl overflow-hidden cursor-pointer group"
+                      >
+                        {/* ===== RANK BADGE ===== */}
+                        <div className="absolute top-3 left-3 z-10">
+                          <span className="px-3 py-1 text-xs font-black rounded-full bg-orange-500 text-black">
+                            #{index + 1} BEST
+                          </span>
                         </div>
 
-                        <button
-                          onClick={(e) =>
-                            handleAddToCart(e, product._id)
-                          }
-                          className="p-3 bg-white text-black rounded-xl hover:bg-cyan-500"
-                        >
-                          <FaShoppingCart />
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
+                        {/* ===== IMAGE ===== */}
+                        <div className="relative aspect-square overflow-hidden bg-neutral-900/50">
+                          <img
+                            src={product.images[0]}
+                            alt={product.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition"
+                          />
+
+                          {/* ACTIONS */}
+                          <div className="absolute top-3 right-3 flex gap-2 z-10">
+                            <button
+                              onClick={(e) => toggleWishlist(e, product._id)}
+                              className="p-2 bg-black/50 rounded-xl border border-white/10"
+                            >
+                              {wishlist.includes(product._id) ? (
+                                <FaHeart className="text-red-500" />
+                              ) : (
+                                <FaRegHeart />
+                              )}
+                            </button>
+
+                            <button
+                              onClick={(e) => handleShare(e, product._id)}
+                              className="p-2 bg-black/50 rounded-xl border border-white/10 hover:bg-cyan-500"
+                            >
+                              <FaShareAlt />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* ===== INFO ===== */}
+                        <div className="p-4 flex flex-col">
+                          <p className="text-cyan-500 text-[10px] font-black uppercase">
+                            {product.brand}
+                          </p>
+
+                          <h3 className="text-sm font-bold line-clamp-2 mb-1">
+                            {product.name}
+                          </h3>
+
+                          <p className="text-xs text-gray-400 mb-2">
+                            🔥 Sold { (products.find(i=>i.product?._id===product._id)?.totalSold) ?? 0 } times
+                          </p>
+
+                          <div className="flex justify-between items-center mt-auto pt-3 border-t border-white/5">
+                            <div>
+                              {product.discountPrice ? (
+                                <>
+                                  <span className="text-lg font-black text-cyan-400">
+                                    ₹{product.discountPrice}
+                                  </span>
+                                  <span className="block text-xs line-through text-gray-500">
+                                    ₹{product.price}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-lg font-black">
+                                  ₹{product.price}
+                                </span>
+                              )}
+                            </div>
+
+                            <button
+                              onClick={(e) =>
+                                handleAddToCart(e, product._id)
+                              }
+                              className="p-3 bg-white text-black rounded-xl hover:bg-cyan-500"
+                            >
+                              <FaShoppingCart />
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+              </div>
+            </div>
           )}
         </div>
       </div>
