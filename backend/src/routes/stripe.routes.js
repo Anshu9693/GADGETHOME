@@ -1,5 +1,5 @@
 import express from "express";
-import { createStripeSession, confirmStripeSession } from "../controllers/stripe.controller.js";
+import { createStripeSession, confirmStripeSession, confirmStripeSessionGET } from "../controllers/stripe.controller.js";
 import { userAuthMiddleware } from "../middleware/user.auth.middleware.js";
 
 const router = express.Router();
@@ -13,5 +13,9 @@ router.post("/create-session", userAuthMiddleware, createStripeSession);
 // calls here because the Stripe session contains `metadata.orderId` and we
 // verify payment intent server-side before marking orders as paid.
 router.post("/confirm", confirmStripeSession);
+
+// Allow Stripe to redirect users (GET) to this endpoint so the server can
+// confirm payment and clear cart before forwarding them to the frontend.
+router.get("/confirm", confirmStripeSessionGET);
 
 export default router;

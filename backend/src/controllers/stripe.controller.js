@@ -12,6 +12,7 @@ export const createStripeSession = async (req, res) => {
     if (!order) return res.status(404).json({ message: "Order not found" });
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const backendUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -27,7 +28,11 @@ export const createStripeSession = async (req, res) => {
         },
         quantity: item.quantity,
       })),
-      success_url: `${frontendUrl}/user/myorders?session_id={CHECKOUT_SESSION_ID}`,
+      // Redirect to backend confirm endpoint so server can safely verify
+      // the session, update order status, and clear cart before sending
+      // user back to the frontend. This avoids relying only on webhooks
+      // or the frontend to call the confirm endpoint.
+      success_url: `${backendUrl}/api/stripe/confirm?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${frontendUrl}/user/checkout`,
       metadata: {
         orderId: order._id.toString(),
@@ -103,5 +108,69 @@ export const confirmStripeSession = async (req, res) => {
   } catch (error) {
     console.error("Confirm session error:", error);
     res.status(500).json({ message: error.message });
+  }
+};
+
+// GET variant: used when Stripe redirects the user to a backend URL
+// (e.g. set as `success_url` in checkout session). Confirms the session
+// server-side, updates the order, clears the cart, then redirects user
+// back to the frontend orders page.
+export const confirmStripeSessionGET = async (req, res) => {
+  try {
+    const sessionId = req.query.session_id || req.query.sessionId || req.query.session;
+    if (!sessionId) return res.status(400).send("Missing session_id");
+
+    // Reuse the same logic as the POST confirm handler by retrieving
+    // the session and checking payment status.
+    const session = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["payment_intent"],
+    });
+
+    const orderId = session.metadata?.orderId;
+    if (!orderId) return res.status(400).send("Invalid session metadata");
+
+    const order = await OrderModel.findById(orderId);
+    if (!order) return res.status(404).send("Order not found");
+
+    const paymentIntentId = session.payment_intent?.id || session.payment_intent;
+    let paymentSucceeded = false;
+    if (session.payment_status === "paid") paymentSucceeded = true;
+
+    if (!paymentSucceeded && paymentIntentId) {
+      try {
+        const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+        if (pi && pi.status === "succeeded") paymentSucceeded = true;
+      } catch (e) {
+        console.error("Failed to fetch payment intent (GET confirm):", e);
+      }
+    }
+
+    if (paymentSucceeded) {
+      if (order.paymentStatus !== "Paid") {
+        order.paymentStatus = "Paid";
+        order.orderStatus = "Processing";
+        order.paymentIntentId = paymentIntentId;
+        await order.save();
+      }
+
+      try {
+        const cart = await CartModel.findOne({ user: order.user });
+        if (cart) {
+          cart.items = [];
+          cart.totalItems = 0;
+          cart.totalPrice = 0;
+          await cart.save();
+        }
+      } catch (e) {
+        console.error("Failed to clear cart after GET confirm:", e);
+      }
+    }
+
+    // Redirect back to frontend orders page (optionally include session)
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    return res.redirect(302, `${frontendUrl}/user/myorders`);
+  } catch (error) {
+    console.error("Confirm GET session error:", error);
+    return res.status(500).send("Server error confirming session");
   }
 };
