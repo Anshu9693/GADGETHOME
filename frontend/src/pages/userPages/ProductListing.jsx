@@ -214,7 +214,7 @@ const ProductListing = () => {
                   />
                 </div>
                 <div className="flex gap-2">
-                  <select
+                  {/* <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="flex-1 bg-white/5 border border-white/10 rounded-xl py-2.5 px-3 text-[10px] font-black uppercase outline-none focus:border-cyan-500/40"
@@ -222,13 +222,13 @@ const ProductListing = () => {
                     <option value="newest">Latest Units</option>
                     <option value="low-high">Price: Min</option>
                     <option value="high-low">Price: Max</option>
-                  </select>
-                  <button
+                  </select> */}
+                  {/* <button
                     onClick={() => setShowFilters(true)}
                     className="bg-cyan-500 text-black px-5 rounded-xl text-[10px] font-black uppercase tracking-tighter hover:bg-white transition-colors"
                   >
                     Catalog
-                  </button>
+                  </button> */}
                 </div>
               </motion.div>
             )}
@@ -239,7 +239,7 @@ const ProductListing = () => {
             onClick={() => setIsHudOpen(!isHudOpen)}
             className={`w-16 h-16 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,255,255,0.2)] transition-all duration-500 ${isHudOpen ? "bg-red-500 text-white rotate-90" : "bg-white text-black"}`}
           >
-            {isHudOpen ? <FaTimes size={22} /> : <FaFilter size={20} />}
+            {isHudOpen ? <FaTimes size={22} /> : <FaSearch size={20} />}
           </motion.button>
         </div>
 
@@ -248,7 +248,7 @@ const ProductListing = () => {
             
             {/* DESKTOP SIDEBAR */}
             <aside className="hidden md:block md:col-span-1">
-               <div className="sticky top-28 bg-white/5 p-6 rounded-[2rem] border border-white/10">
+               <div className="sticky  bg-white/5 p-6 rounded-[2rem] border border-white/10">
                   <Filter products={products} onChange={setFilters} />
                </div>
             </aside>

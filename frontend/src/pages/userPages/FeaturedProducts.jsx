@@ -155,7 +155,7 @@ const FeaturedProducts = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
             {/* FILTER SIDEBAR */}
             <aside className="hidden md:block md:col-span-1">
-              <div className="sticky top-32">
+              <div className="sticky ">
                 <Filter products={products} onChange={setFilters} />
               </div>
             </aside>
