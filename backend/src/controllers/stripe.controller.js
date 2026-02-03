@@ -167,7 +167,7 @@ export const confirmStripeSessionGET = async (req, res) => {
     }
 
     // Redirect back to frontend orders page (optionally include session)
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    const frontendUrl = process.env.FRONTEND_URL;
     return res.redirect(302, `${frontendUrl}/user/myorders`);
   } catch (error) {
     console.error("Confirm GET session error:", error);
