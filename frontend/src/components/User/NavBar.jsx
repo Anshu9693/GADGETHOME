@@ -196,7 +196,8 @@ const Navbar = () => {
                     </Link>
                     <Link
                       to="/admin/signin"
-                      className="block px-5 py-3 text-sm twhite hover:bg-white/5"
+                     className="block px-5 py-3 text-sm text-white hover:bg-white/5"
+
                     >
                       Contineu As admin
                     </Link>
@@ -272,9 +273,14 @@ const Navbar = () => {
                 </NavIcon>
 
                 {!isAuthenticated ? (
-                  <Link to="/user/signin" className="text-cyan-400 font-semibold">
-                    Sign In
-                  </Link>
+                  <>
+                    <Link to="/user/signin" className="text-cyan-400 font-semibold">
+                      Sign In
+                    </Link>
+                    <Link to="/admin/signin" className="text-white font-semibold">
+                      Continue As Admin
+                    </Link>
+                  </>
                 ) : (
                   <button onClick={handleLogout} className="text-red-400 font-semibold">
                     Logout
