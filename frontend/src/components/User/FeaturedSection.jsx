@@ -17,6 +17,7 @@ const ITEMS_PER_PAGE = 8;
 const FeaturedSection = () => {
   const [products, setProducts] = useState([]);
   const [wishlist, setWishlist] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
 
@@ -24,6 +25,7 @@ const FeaturedSection = () => {
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
+        setLoading(true);
         const res = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/api/products/user/featured`,
           { withCredentials: true }
@@ -39,6 +41,8 @@ const FeaturedSection = () => {
         } catch {}
       } catch {
         toast.error("Failed to load featured products");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -106,7 +110,18 @@ const FeaturedSection = () => {
         </div>
 
         {/* GRID */}
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        {loading && (
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className="h-[420px] animate-pulse rounded-3xl border border-slate-200 bg-white/80"
+              />
+            ))}
+          </div>
+        )}
+        {!loading && (
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {currentProducts.map(p => (
             <motion.div
               key={p._id}
@@ -189,7 +204,8 @@ const FeaturedSection = () => {
               </div>
             </motion.div>
           ))}
-        </div>
+          </div>
+        )}
 
         {/* PAGINATION */}
         {totalPages > 1 && (
