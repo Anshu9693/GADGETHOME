@@ -149,9 +149,9 @@ const EditProduct = () => {
   return (
     <>
       <AdminNavbar />
-      <ToastContainer theme="dark" />
+      <ToastContainer theme="light" />
 
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white px-6 py-10">
+      <div className="min-h-screen bg-[#f7f7f5] text-slate-900 px-6 py-10">
         <motion.h1
           variants={fadeUp}
           initial="hidden"
@@ -166,7 +166,7 @@ const EditProduct = () => {
           variants={fadeUp}
           initial="hidden"
           animate="visible"
-          className="max-w-6xl mx-auto bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-8 space-y-8"
+          className="max-w-6xl mx-auto bg-white border border-slate-200 rounded-3xl p-8 space-y-8 shadow-sm"
         >
           {/* BASIC INFO */}
           <div className="grid md:grid-cols-2 gap-6">
@@ -179,9 +179,9 @@ const EditProduct = () => {
             <select className="admin-input" name="category" value={form.category} onChange={handleChange}>
               <option value="">Select Category</option>
               {categories.map((c) => (
-                <option key={c} value={c} className="text-black">{c}</option>
-              ))}
-            </select>
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
 
             <input type="number" className="admin-input" name="price" value={form.price} onChange={handleChange} placeholder="Price" />
             <input type="number" className="admin-input" name="discountPrice" value={form.discountPrice} onChange={handleChange} placeholder="Discount Price" />
@@ -194,16 +194,16 @@ const EditProduct = () => {
             <select className="admin-input" name="powerSource" value={form.powerSource} onChange={handleChange}>
               <option value="">Select Power Source</option>
               {powerSources.map((p) => (
-                <option key={p} value={p} className="text-black">{p}</option>
-              ))}
-            </select>
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
 
             <input className="admin-input" name="warranty" value={form.warranty} onChange={handleChange} placeholder="Warranty" />
           </div>
 
           {/* CONNECTIVITY */}
           <div>
-            <p className="text-sm text-gray-300 mb-2">Connectivity</p>
+            <p className="text-sm text-slate-600 mb-2">Connectivity</p>
             <div className="flex flex-wrap gap-3">
               {connectivityOptions.map((c) => (
                 <button
@@ -212,8 +212,8 @@ const EditProduct = () => {
                   onClick={() => toggleConnectivity(c)}
                   className={`px-4 py-2 rounded-full border transition ${
                     form.connectivity.includes(c)
-                      ? "bg-cyan-500 text-black"
-                      : "border-white/20 text-gray-300 hover:border-cyan-400"
+                      ? "bg-cyan-500 text-black border-cyan-400"
+                      : "border-slate-200 text-slate-600 hover:border-cyan-400"
                   }`}
                 >
                   {c}
@@ -236,7 +236,7 @@ const EditProduct = () => {
             <button
               type="button"
               onClick={() => fileInputRef.current.click()}
-              className="flex items-center gap-3 px-6 py-3 border border-white/20 rounded-xl hover:border-cyan-400 transition text-gray-300 hover:text-white"
+              className="flex items-center gap-3 px-6 py-3 border border-slate-200 rounded-xl hover:border-slate-300 transition text-slate-600 hover:text-slate-900 bg-white"
             >
               <FaImage />
               Replace / Add Images
@@ -260,14 +260,14 @@ const EditProduct = () => {
                 {images.map((img, idx) => (
                   <div
                     key={idx}
-                    className="relative group rounded-xl overflow-hidden border border-white/20"
+                    className="relative group rounded-xl overflow-hidden border border-slate-200"
                   >
                     <img
                       src={URL.createObjectURL(img)}
                       alt="preview"
                       className="w-full h-32 object-cover"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition" />
+                    <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition" />
                   </div>
                 ))}
               </div>
@@ -275,7 +275,7 @@ const EditProduct = () => {
           </div>
 
           {/* FEATURED */}
-          <label className="flex items-center gap-3 text-sm text-gray-300">
+          <label className="flex items-center gap-3 text-sm text-slate-700">
             <input type="checkbox" name="isFeatured" checked={form.isFeatured} onChange={handleChange} />
             Featured Product
           </label>
@@ -284,7 +284,7 @@ const EditProduct = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-cyan-500 hover:bg-cyan-600 text-black font-semibold py-4 rounded-xl text-lg"
+            className="w-full flex items-center justify-center gap-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-4 rounded-xl text-lg"
           >
             {loading ? <FaSpinner className="animate-spin" /> : <FaSave />}
             {loading ? "Updating..." : "Update Product"}
@@ -296,20 +296,20 @@ const EditProduct = () => {
       <style>
         {`
           .admin-input {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
             padding: 14px 16px;
             border-radius: 14px;
-            color: white;
+            color: #0f172a;
             width: 100%;
             transition: all 0.2s ease;
           }
           .admin-input::placeholder {
-            color: rgba(255,255,255,0.5);
+            color: #94a3b8;
           }
           .admin-input:focus {
             border-color: #22d3ee;
-            background: rgba(255,255,255,0.12);
+            box-shadow: 0 0 0 3px rgba(34,211,238,0.15);
             outline: none;
           }
         `}

@@ -2,6 +2,7 @@ import React from 'react'
 import { Toaster } from "react-hot-toast";
 import { Route, Routes } from 'react-router-dom'
 import LandingPage from './pages/LandingPage.jsx'
+import Footer from './components/User/Footer.jsx'
 import AdminSignup from './pages/adminPages/SignUp.jsx'
 import AdminSignin from './pages/adminPages/SignIn.jsx'
 import AddProduct from './pages/adminPages/AddProduct.jsx'
@@ -23,6 +24,16 @@ import Checkout from './pages/userPages/Checkout.jsx'
 import MyOrders from './pages/userPages/MyOrders.jsx'
 import OrderDetails from './pages/userPages/OrderDetails.jsx'
 import BestSelling from './pages/userPages/BestSelling.jsx'
+import GadgetLoader from './components/User/GadgetLoader.jsx';
+import About from './components/User/About.jsx';
+import Contact from './components/User/Contact.jsx';
+import Wearables from './pages/userPages/categories/Wearables.jsx';
+import Entertainment from './pages/userPages/categories/Entertainment.jsx';
+import HomeSecurity from './pages/userPages/categories/HomeSecurity.jsx';
+import KitchenGadgets from './pages/userPages/categories/KitchenGadgets.jsx';
+import SmartLighting from './pages/userPages/categories/SmartLighting.jsx';
+import UserProfile from './pages/userPages/UserProfile.jsx';
+
 
 // Routes
 
@@ -42,7 +53,7 @@ const App = () => {
       />
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/admin/signup" element={<AdminSignup />} />
+        {/* <Route path="/admin/signup" element={<AdminSignup />} /> */}
         <Route path="/admin/signin" element={<AdminSignin />} />
         <Route path="/admin/add-product" element={<AddProduct />} />
         <Route path="/admin/products" element={<MyProducts />} />
@@ -67,18 +78,26 @@ const App = () => {
         <Route path="/user/myorders" element={<MyOrders/>} />
         <Route path="/user/order/:orderId" element={<OrderDetails/>} />
         <Route path="/user/bestselling" element={<BestSelling/>} />
-
-        
-
-
-
-
+        <Route path="/user/loader" element={<GadgetLoader/>} />
+        <Route path="/user/about" element={<About/>} />
+        <Route path="/user/contact" element={<Contact/>} />
+        <Route path="/user/profile" element={<UserProfile/>} />
 
 
 
 
 
-      </Routes>
+          {/* //categories */}
+        <Route path="/user/Category/entertainment" element={<Entertainment/>} />
+        <Route path="/user/Category/homesecurity" element={<HomeSecurity/>} />
+        <Route path="/user/Category/kitchen" element={<KitchenGadgets/>} />
+        <Route path="/user/Category/smartlighting" element={<SmartLighting/>} />
+        <Route path="/user/Category/wearables" element={<Wearables/>} />
+
+
+      </Routes> 
+
+        <Footer/>
     </>
   )
 }

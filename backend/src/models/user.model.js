@@ -22,6 +22,13 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
       select: false, // never send password in response
     },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    avatar: {
+      type: String,
+    },
   },
   {
     timestamps: true,

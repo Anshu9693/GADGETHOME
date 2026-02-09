@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { NavLink, Link, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -17,6 +17,10 @@ const NAV_ITEMS = [
   { label: "Best Selling", path: "/user/bestselling" },
   { label: "Featured", path: "/user/featured" },
   { label: "My Orders", path: "/user/myorders" },
+  { label: "About", path: "/user/about" },
+  { label: "Contact", path: "/user/contact" },
+
+
 ];
 
 /* ================= AXIOS ================= */
@@ -28,6 +32,7 @@ const api = axios.create({
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const profileRef = useRef(null);
 
   const [scrolled, setScrolled] = useState(false);
@@ -36,6 +41,7 @@ const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
+  const [userAvatar, setUserAvatar] = useState("");
 
   /* ================= SCROLL ================= */
   useEffect(() => {
@@ -50,6 +56,16 @@ const Navbar = () => {
       .then(() => setIsAuthenticated(true))
       .catch(() => setIsAuthenticated(false));
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setUserAvatar("");
+      return;
+    }
+    api.get("/api/user/profile")
+      .then(res => setUserAvatar(res.data.user?.avatar || ""))
+      .catch(() => setUserAvatar(""));
+  }, [isAuthenticated]);
 
   /* ================= WISHLIST ================= */
   useEffect(() => {
@@ -102,8 +118,10 @@ const Navbar = () => {
     <nav
       className={`fixed top-0 w-full z-50 transition-all
       ${scrolled
-        ? "bg-black/80 backdrop-blur border-b border-white/10"
-        : "bg-black md:bg-transparent"}`}
+        ? "bg-black/75 backdrop-blur border-b border-white/10"
+        : location.pathname === "/"
+          ? "bg-transparent"
+          : "bg-black/55 backdrop-blur border-b border-white/10"}`}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
@@ -148,7 +166,15 @@ const Navbar = () => {
               onClick={() => setProfileOpen(!profileOpen)}
               className="text-white p-2 rounded-full hover:bg-white/10"
             >
-              <FaUser />
+              {userAvatar ? (
+                <img
+                  src={userAvatar}
+                  alt="Profile"
+                  className="h-7 w-7 rounded-full object-cover border border-white/20"
+                />
+              ) : (
+                <FaUser />
+              )}
             </button>
 
             <AnimatePresence>
@@ -168,12 +194,21 @@ const Navbar = () => {
                       Sign In
                     </Link>
                   ) : (
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-5 py-3 text-red-400 hover:bg-red-500/10"
-                    >
-                      Logout
-                    </button>
+                    <>
+                      <Link
+                        to="/user/profile"
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-5 py-3 text-white hover:bg-white/5"
+                      >
+                        Profile
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-5 py-3 text-red-400 hover:bg-red-500/10"
+                      >
+                        Logout
+                      </button>
+                    </>
                   )}
                 </motion.div>
               )}
@@ -197,7 +232,7 @@ const Navbar = () => {
             initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
-            className="md:hidden bg-black border-t border-white/10"
+            className="md:hidden bg-black/80 border-t border-white/10"
           >
             <ul className="flex flex-col px-6 py-6 gap-5">
               {NAV_ITEMS.map(item => (
@@ -261,7 +296,7 @@ const NavIcon = ({ to, children, badge, badgeColor }) => (
         flex items-center justify-center font-bold
         ${badgeColor === "red"
           ? "bg-red-500 text-white"
-          : "bg-cyan-400 text-black"}`}
+          : "bg-cyan-400 text-black/"}`}
       >
         {badge}
       </span>

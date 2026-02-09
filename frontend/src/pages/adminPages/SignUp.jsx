@@ -66,86 +66,124 @@ const AdminSignup = () => {
         newestOnTop
         closeOnClick
         pauseOnHover
-        theme="dark"
+        theme="light"
       />
 
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black px-4">
+      <div className="min-h-screen bg-[#f5f7fb] px-4 py-12">
         <motion.div
           initial="hidden"
           animate="visible"
           variants={fadeUp}
-          className="w-full max-w-md rounded-3xl border border-white/10 bg-white/10 backdrop-blur-xl p-8 text-white"
+          className="mx-auto w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl"
         >
-          <motion.h2
-            variants={fadeUp}
-            className="text-3xl font-extrabold text-center mb-8"
-          >
-            Admin Signup
-          </motion.h2>
+          <div className="grid gap-0 md:grid-cols-[1.1fr_1fr]">
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-10 py-12 text-white">
+              <motion.h2
+                variants={fadeUp}
+                className="text-3xl font-bold"
+              >
+                Create Admin Account
+              </motion.h2>
+              <p className="mt-4 text-sm text-slate-300">
+                Manage products, orders, and customers from a secure,
+                streamlined dashboard built for GadgetHome.
+              </p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Full Name */}
-            <motion.div variants={fadeUp} custom={1} className="relative">
-              <input
-                type="text"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="peer w-full bg-transparent border-b border-gray-500 py-2 text-white outline-none focus:border-cyan-400"
-              />
-              <label className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 text-sm transition-all peer-focus:-top-2 peer-focus:text-xs peer-focus:text-cyan-400 peer-valid:-top-2 peer-valid:text-xs">
-                Full Name
-              </label>
-            </motion.div>
+              <ul className="mt-8 space-y-4 text-sm text-slate-200">
+                <li className="flex items-start gap-3">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-cyan-400"></span>
+                  Full control over inventory, pricing, and featured sections.
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-cyan-400"></span>
+                  Track live orders, cancellations, and customer updates.
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-1 h-2 w-2 rounded-full bg-cyan-400"></span>
+                  Secure access with role-based admin permissions.
+                </li>
+              </ul>
 
-            {/* Email */}
-            <motion.div variants={fadeUp} custom={2} className="relative">
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="peer w-full bg-transparent border-b border-gray-500 py-2 text-white outline-none focus:border-cyan-400"
-              />
-              <label className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 text-sm transition-all peer-focus:-top-2 peer-focus:text-xs peer-focus:text-cyan-400 peer-valid:-top-2 peer-valid:text-xs">
-                Email Address
-              </label>
-            </motion.div>
+              <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-slate-300">
+                Tip: Use a strong password and keep admin access limited.
+              </div>
+            </div>
 
-            {/* Password */}
-            <motion.div variants={fadeUp} custom={3} className="relative">
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="peer w-full bg-transparent border-b border-gray-500 py-2 text-white outline-none focus:border-cyan-400"
-              />
-              <label className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400 text-sm transition-all peer-focus:-top-2 peer-focus:text-xs peer-focus:text-cyan-400 peer-valid:-top-2 peer-valid:text-xs">
-                Password
-              </label>
-            </motion.div>
+            <div className="px-10 py-12">
+              <motion.h3
+                variants={fadeUp}
+                className="text-2xl font-semibold text-slate-900"
+              >
+                Admin Signup
+              </motion.h3>
+              <p className="mt-2 text-sm text-slate-500">
+                Fill in the details to create a new admin account.
+              </p>
 
-            {/* Submit */}
-            <motion.button
-              variants={fadeUp}
-              custom={4}
-              disabled={loading}
-              className="w-full py-3 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 text-black font-semibold hover:scale-105 transition disabled:opacity-50"
-            >
-              {loading ? "Creating..." : "Create Admin Account"}
-            </motion.button>
-          </form>
+              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+                <motion.div variants={fadeUp} custom={1}>
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="Enter full name"
+                    className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
+                  />
+                </motion.div>
 
-          <p className="text-center text-sm text-gray-400 mt-6">
-                      Already have an admin account?{" "}
-                      <Link
-                        to="/admin/signin"
-                        className="text-cyan-400 hover:underline"
-                      >
-                        Sign in
-                      </Link>
-                    </p>
+                <motion.div variants={fadeUp} custom={2}>
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@gadgethome.com"
+                    className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
+                  />
+                </motion.div>
+
+                <motion.div variants={fadeUp} custom={3}>
+                  <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Create a secure password"
+                    className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
+                  />
+                </motion.div>
+
+                <motion.button
+                  variants={fadeUp}
+                  custom={4}
+                  disabled={loading}
+                  className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+                >
+                  {loading ? "Creating..." : "Create Admin Account"}
+                </motion.button>
+              </form>
+
+              <p className="mt-6 text-sm text-slate-500">
+                Already have an admin account?{" "}
+                <Link
+                  to="/admin/signin"
+                  className="font-semibold text-cyan-600 hover:text-cyan-700"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          </div>
         </motion.div>
       </div>
     </>

@@ -133,9 +133,9 @@ const AddProduct = () => {
   return (
     <>
       <AdminNavbar />
-      <ToastContainer position="top-right" theme="dark" autoClose={3000} />
+      <ToastContainer position="top-right" theme="light" autoClose={3000} />
 
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white px-6 py-10">
+      <div className="min-h-screen bg-[#f7f7f5] text-slate-900 px-6 py-10">
         <motion.h1
           variants={fadeUp}
           initial="hidden"
@@ -150,7 +150,7 @@ const AddProduct = () => {
           variants={fadeUp}
           initial="hidden"
           animate="visible"
-          className="max-w-5xl mx-auto bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-8 space-y-8"
+          className="max-w-5xl mx-auto bg-white border border-slate-200 rounded-3xl p-8 space-y-8 shadow-sm"
         >
           {/* BASIC INFO */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -182,10 +182,10 @@ const AddProduct = () => {
             >
               <option value="">Select Category</option>
               {categories.map((c) => (
-                <option key={c} value={c} className="text-black">
-                  {c}
-                </option>
-              ))}
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
             </select>
 
             <input
@@ -248,7 +248,7 @@ const AddProduct = () => {
 
           {/* CONNECTIVITY */}
           <div>
-            <p className="text-sm text-gray-300 mb-2">Connectivity</p>
+            <p className="text-sm text-slate-600 mb-2">Connectivity</p>
             <div className="flex flex-wrap gap-3">
               {connectivityOptions.map((c) => (
                 <button
@@ -257,8 +257,8 @@ const AddProduct = () => {
                   onClick={() => handleConnectivity(c)}
                   className={`px-4 py-2 rounded-full border transition ${
                     form.connectivity.includes(c)
-                      ? "bg-cyan-500 text-black"
-                      : "border-white/20 text-gray-300 hover:border-cyan-400"
+                      ? "bg-cyan-500 text-black border-cyan-400"
+                      : "border-slate-200 text-slate-600 hover:border-cyan-400"
                   }`}
                 >
                   {c}
@@ -278,8 +278,8 @@ const AddProduct = () => {
 
           {/* IMAGE UPLOAD SECTION */}
           <div>
-            <label className="flex items-center gap-3 cursor-pointer w-fit text-gray-300 hover:text-white mb-4">
-              <div className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-lg border border-white/20 hover:bg-white/20 transition">
+            <label className="flex items-center gap-3 cursor-pointer w-fit text-slate-600 hover:text-slate-900 mb-4">
+              <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-slate-200 hover:border-slate-300 transition">
                 <FaImage />
                 <span>Upload Images (max 5)</span>
               </div>
@@ -300,7 +300,7 @@ const AddProduct = () => {
                     <img
                       src={URL.createObjectURL(img)}
                       alt={`preview-${index}`}
-                      className="w-full h-24 object-cover rounded-xl border border-white/20"
+                      className="w-full h-24 object-cover rounded-xl border border-slate-200"
                     />
                     <button
                       type="button"
@@ -316,7 +316,7 @@ const AddProduct = () => {
           </div>
 
           {/* FEATURED */}
-          <label className="flex items-center gap-3 text-sm">
+          <label className="flex items-center gap-3 text-sm text-slate-700">
             <input
               type="checkbox"
               name="isFeatured"
@@ -331,7 +331,7 @@ const AddProduct = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-cyan-500 hover:bg-cyan-600 text-black font-semibold py-3 rounded-xl transition"
+            className="w-full flex items-center justify-center gap-3 bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 rounded-xl transition"
           >
             {loading ? <FaSpinner className="animate-spin" /> : <FaPlus />}
             {loading ? "Adding Product..." : "Add Product"}
@@ -343,22 +343,22 @@ const AddProduct = () => {
       <style>
         {`
           .admin-input {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
             padding: 12px 14px;
             border-radius: 12px;
             outline: none;
-            color: white;
+            color: #0f172a;
             width: 100%;
           }
 
           .admin-input::placeholder {
-            color: rgba(255,255,255,0.5);
+            color: #94a3b8;
           }
 
           .admin-input:focus {
             border-color: #22d3ee;
-            background: rgba(255,255,255,0.12);
+            box-shadow: 0 0 0 3px rgba(34,211,238,0.15);
           }
         `}
       </style>

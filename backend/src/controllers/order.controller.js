@@ -148,12 +148,11 @@
         }
       }
 
+      const populated = await order.populate("items.product", "name price images");
       res.status(200).json({
         success: true,
         message: "Order cancelled successfully",
-            order: await order
-              .populate("items.product", "name price images")
-              .execPopulate(),
+        order: populated,
       });
     } catch (error) {
       console.error("Cancel Order Error:", error);
@@ -230,12 +229,11 @@
         }
       }
 
+      const populated = await order.populate("items.product", "name price images");
       res.status(200).json({
         success: true,
         message: "Order cancelled by admin",
-        order: await order
-          .populate("items.product", "name price images")
-          .execPopulate(),
+        order: populated,
       });
     } catch (error) {
       console.error("Admin Cancel Error:", error);
@@ -267,9 +265,7 @@
         console.error("Failed clearing cart in markOrderPaid:", e);
       }
 
-      const populated = await order
-        .populate("items.product", "name price images")
-        .execPopulate();
+      const populated = await order.populate("items.product", "name price images");
 
       res.status(200).json({ success: true, message: "Order marked Paid (debug)", order: populated });
     } catch (error) {

@@ -18,6 +18,13 @@ const adminSchema = new mongoose.Schema({
     required: true,
     minlength: 6,
   },
+  phone: {
+    type: String,
+    trim: true,
+  },
+  avatar: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

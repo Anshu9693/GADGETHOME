@@ -35,15 +35,15 @@ const fadeUp = {
 const getStatusStyle = (status) => {
   switch (status) {
     case "Delivered":
-      return "bg-green-500/20 text-green-400";
+      return "bg-emerald-50 text-emerald-600 border border-emerald-200";
     case "Processing":
-      return "bg-yellow-500/20 text-yellow-400";
+      return "bg-amber-50 text-amber-600 border border-amber-200";
     case "Shipped":
-      return "bg-blue-500/20 text-blue-400";
+      return "bg-blue-50 text-blue-600 border border-blue-200";
     case "Cancelled":
-      return "bg-red-500/20 text-red-400";
+      return "bg-rose-50 text-rose-600 border border-rose-200";
     default:
-      return "bg-gray-500/20 text-gray-300";
+      return "bg-slate-50 text-slate-600 border border-slate-200";
   }
 };
 
@@ -162,42 +162,42 @@ const AdminDashboard = () => {
       <AdminNavbar />
 
       {/* ================= SIDEBAR ================= */}
-      <div className={`fixed top-0 left-0 h-full w-96 bg-gradient-to-b from-gray-900/80 to-black/80 backdrop-blur-xl p-6 transition-transform z-50 shadow-2xl border-l-2 border-cyan-400/50 rounded-r-3xl ${showCalendar ? "translate-x-0" : "-translate-x-full"}`}>
+      <div className={`fixed top-0 left-0 h-full w-96 bg-gradient-to-b from-white to-white backdrop-blur-xl p-6 transition-transform z-50 shadow-2xl border-l-2 border-cyan-400/50 rounded-r-3xl ${showCalendar ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-cyan-400 flex items-center gap-3"><FaCalendarAlt /> Analyze Your Sell</h2>
-          <button onClick={() => setShowCalendar(false)} className="text-white text-2xl font-bold hover:text-red-500 transition">✕</button>
+          <button onClick={() => setShowCalendar(false)} className="text-slate-900 text-2xl font-bold hover:text-red-500 transition">✕</button>
         </div>
         <div className="flex flex-col gap-4 mb-6">
-          <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl flex justify-between items-center shadow-lg border border-cyan-500/30">
-            <p className="text-sm text-gray-300">Total Orders</p>
+          <div className="bg-white backdrop-blur-md p-4 rounded-xl flex justify-between items-center shadow-lg border border-cyan-500/30">
+            <p className="text-sm text-slate-600">Total Orders</p>
             <h3 className="text-xl font-bold text-cyan-400">{filteredOrdersCount || totalOrders}</h3>
           </div>
-          <div className="bg-white/10 backdrop-blur-md p-4 rounded-xl flex justify-between items-center shadow-lg border border-green-500/30">
-            <p className="text-sm text-gray-300">Total Revenue</p>
+          <div className="bg-white backdrop-blur-md p-4 rounded-xl flex justify-between items-center shadow-lg border border-green-500/30">
+            <p className="text-sm text-slate-600">Total Revenue</p>
             <h3 className="text-xl font-bold text-green-400">₹{filteredRevenue}</h3>
           </div>
         </div>
         <div className="flex flex-col gap-4">
           <div>
-            <p className="text-gray-400 text-sm mb-1">Start Date:</p>
-            <DatePicker selected={startDate} onChange={(date) => setStartDate(date)} dateFormat="dd/MM/yyyy" className="w-full px-3 py-2 rounded-lg bg-gray-800/60 text-white border border-cyan-400/50" />
+            <p className="text-slate-500 text-sm mb-1">Start Date:</p>
+            <DatePicker selected={startDate} onChange={(date) => setStartDate(date)} dateFormat="dd/MM/yyyy" className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 border border-slate-200" />
           </div>
           <div>
-            <p className="text-gray-400 text-sm mb-1">End Date:</p>
-            <DatePicker selected={endDate} onChange={(date) => setEndDate(date)} dateFormat="dd/MM/yyyy" className="w-full px-3 py-2 rounded-lg bg-gray-800/60 text-white border border-cyan-400/50" />
+            <p className="text-slate-500 text-sm mb-1">End Date:</p>
+            <DatePicker selected={endDate} onChange={(date) => setEndDate(date)} dateFormat="dd/MM/yyyy" className="w-full px-3 py-2 rounded-lg bg-white text-slate-900 border border-slate-200" />
           </div>
-          <button onClick={analyzeOrders} className="mt-2 w-full py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold shadow-lg hover:scale-105 transition-transform duration-300">Analyze</button>
+          <button onClick={analyzeOrders} className="mt-2 w-full py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 font-semibold shadow-lg hover:scale-105 transition-transform duration-300">Analyze</button>
         </div>
       </div>
 
       {/* ================= MAIN DASHBOARD ================= */}
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white px-6 py-10">
+      <div className="min-h-screen bg-[#f7f7f5] text-slate-900 px-6 py-10">
         
         {/* ✅ FIXED TO BOTTOM RIGHT */}
         <motion.button
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="fixed bottom-10 right-10 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-6 py-4 rounded-2xl shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:scale-110 hover:shadow-cyan-400/60 transition-all z-40 flex items-center gap-2 font-bold border border-white/10"
+          className="fixed bottom-10 right-10 bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-900 px-6 py-4 rounded-2xl shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:scale-110 hover:shadow-cyan-400/60 transition-all z-40 flex items-center gap-2 font-bold border border-slate-200"
           onClick={() => setShowCalendar(!showCalendar)}
         >
           <FaCalendarAlt /> Analyze Your Sell
@@ -205,34 +205,34 @@ const AdminDashboard = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {stats.map((item, i) => (
-            <motion.div key={item.title} custom={i} initial="hidden" animate="visible" variants={fadeUp} className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl p-6 flex items-center gap-4">
+            <motion.div key={item.title} custom={i} initial="hidden" animate="visible" variants={fadeUp} className="bg-white backdrop-blur-xl border border-slate-200 rounded-2xl p-6 flex items-center gap-4">
               <div className="text-3xl text-cyan-400">{item.icon}</div>
               <div>
-                <p className="text-gray-400 text-sm">{item.title}</p>
+                <p className="text-slate-500 text-sm">{item.title}</p>
                 <h3 className="text-2xl font-bold">{item.value}</h3>
               </div>
             </motion.div>
           ))}
         </div>
 
-        <motion.div initial="hidden" animate="visible" variants={fadeUp} className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 mb-12 shadow-lg">
+        <motion.div initial="hidden" animate="visible" variants={fadeUp} className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl p-6 mb-12 shadow-lg">
           <h2 className="text-xl font-semibold mb-6">Weekly Sales</h2>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={salesData}>
               <XAxis dataKey="date" stroke="#aaa" />
               <YAxis stroke="#aaa" />
-              <Tooltip contentStyle={{ backgroundColor: "#111", border: "none", color: "#fff" }} />
+              <Tooltip contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", color: "#0f172a" }} />
               <Line type="monotone" dataKey="sales" stroke="#22d3ee" strokeWidth={3} dot={{ fill: "#22d3ee", r: 5, stroke: "#0f172a", strokeWidth: 2 }} activeDot={{ r: 8 }} />
             </LineChart>
           </ResponsiveContainer>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <motion.div initial="hidden" animate="visible" variants={fadeUp} className="lg:col-span-2 bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-lg">
+          <motion.div initial="hidden" animate="visible" variants={fadeUp} className="lg:col-span-2 bg-white backdrop-blur-xl border border-slate-200 rounded-3xl p-6 shadow-lg">
             <h2 className="text-xl font-semibold mb-4">Recent Orders</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="text-gray-400 border-b border-white/10">
+                <thead className="text-slate-500 border-b border-slate-200">
                   <tr>
                     <th className="text-left py-2">Order ID</th>
                     <th>User</th>
@@ -242,7 +242,7 @@ const AdminDashboard = () => {
                 </thead>
                 <tbody>
                   {recentOrders.map((order) => (
-                    <tr key={order._id} className="border-b border-white/5">
+                    <tr key={order._id} className="border-b border-slate-200">
                       <td className="py-3">#{order._id.slice(-12)}</td>
                       <td className="text-center">{order.user?.fullName || "User"}</td>
                       <td className="text-center">₹{order.totalAmount}</td>
@@ -256,10 +256,10 @@ const AdminDashboard = () => {
             </div>
           </motion.div>
 
-          <motion.div initial="hidden" animate="visible" variants={fadeUp} className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-lg">
+          <motion.div initial="hidden" animate="visible" variants={fadeUp} className="bg-white backdrop-blur-xl border border-slate-200 rounded-3xl p-6 shadow-lg">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2"><FaExclamationTriangle className="text-red-400" /> Low Stock Alerts</h2>
             {lowStock.length === 0 ? (
-              <p className="text-gray-400 text-sm">All products are sufficiently stocked 🎉</p>
+              <p className="text-slate-500 text-sm">All products are sufficiently stocked 🎉</p>
             ) : (
               <ul className="space-y-3">
                 {lowStock.map((item) => (

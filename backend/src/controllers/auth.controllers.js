@@ -140,6 +140,8 @@ export const loggedInUser = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
+        phone: user.phone,
+        avatar: user.avatar,
         createdAt: user.createdAt,
       },
     });

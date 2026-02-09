@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FaTrash, FaShoppingCart, FaArrowLeft } from "react-icons/fa";
+import { FaTrash, FaShoppingCart, FaArrowLeft, FaShareAlt } from "react-icons/fa";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import NavBar from "../../components/User/NavBar.jsx";
@@ -18,7 +18,7 @@ const Wishlist = () => {
         { withCredentials: true }
       );
       setProducts(res.data.products || []);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load wishlist");
     } finally {
       setLoading(false);
@@ -32,8 +32,7 @@ const Wishlist = () => {
         `${import.meta.env.VITE_BACKEND_URL}/api/wishlist/remove/${id}`,
         { withCredentials: true }
       );
-      toast.success("Removed from Archive");
-      // UI se turant hatane ke liye
+      toast.success("Removed from wishlist");
       setProducts((prev) => prev.filter((p) => p._id !== id));
     } catch {
       toast.error("Failed to remove");
@@ -48,9 +47,29 @@ const Wishlist = () => {
         { productId, quantity: 1 },
         { withCredentials: true }
       );
-      toast.success("Added to Cart 🛒");
+      toast.success("Added to cart");
     } catch {
       toast.error("Please login again");
+    }
+  };
+
+  const handleShare = async (e, productId) => {
+    e.stopPropagation();
+    const link = `${window.location.origin}/user/productDetail/${productId}`;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(link);
+      } else {
+        const input = document.createElement("input");
+        input.value = link;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
+      }
+      toast.success("Link copied");
+    } catch {
+      toast.error("Copy failed");
     }
   };
 
@@ -61,81 +80,106 @@ const Wishlist = () => {
   return (
     <>
       <NavBar />
-      <div className="min-h-screen bg-[#050505] text-white pt-32 pb-24 px-4 md:px-10">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen bg-[#f7f7f5]">
+        <main className="relative mx-auto max-w-[1400px] px-6 pb-24 pt-24">
+          <div className="pointer-events-none absolute inset-0 -z-10">
+            <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_1px_1px,rgba(15,23,42,0.12)_1px,transparent_0)] bg-[size:14px_14px]" />
+            <div className="absolute -top-12 -right-10 h-40 w-40 rounded-full bg-amber-200/40 blur-2xl" />
+            <div className="absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-slate-200/60 blur-3xl" />
+          </div>
 
-           <button 
-              onClick={() => navigate("/user/allproducts")}
-              className="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-widest border border-white/10 px-6 py-3 rounded-full hover:bg-white hover:text-black transition-all"
-            >
-              <FaArrowLeft /> Back to Store
-            </button>
+          <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate("/user/allproducts")}
+                className="rounded-full border border-slate-200 bg-white p-3 text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+              >
+                <FaArrowLeft size={14} />
+              </button>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">Wishlist</p>
+                <h1 className="mt-1 text-2xl font-semibold text-slate-900">Saved items</h1>
+                <p className="mt-1 text-[12px] text-slate-500">{products.length} items</p>
+              </div>
+            </div>
+          </div>
 
           {loading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-[400px] rounded-[2rem] bg-white/5 animate-pulse" />
+                <div key={i} className="h-[360px] rounded-3xl bg-white/80 border border-slate-200 animate-pulse" />
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 border border-dashed border-white/10 rounded-[3rem]">
-              <p className="text-gray-500 font-mono mb-6 uppercase tracking-widest">Database is empty</p>
-              <button 
+            <div className="rounded-3xl border border-slate-200 bg-white/90 py-24 text-center text-slate-500">
+              <p className="text-xs uppercase tracking-[0.25em]">Your wishlist is empty</p>
+              <button
                 onClick={() => navigate("/user/allproducts")}
-                className="bg-cyan-500 text-black px-10 py-4 rounded-2xl font-black uppercase text-xs"
+                className="mt-6 rounded-2xl bg-slate-900 px-8 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white"
               >
-                Scan Products
+                Browse products
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {products.map((p) => (
                 <div
                   key={p._id}
                   onClick={() => navigate(`/user/productDetail/${p._id}`)}
-                  className="group relative flex flex-col bg-[#0b0b0b] border border-white/5 rounded-[2rem] overflow-hidden hover:border-red-500/40 transition-all duration-500"
+                  className="group relative flex flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white/95 shadow-[0_14px_30px_-24px_rgba(15,23,42,0.35)] transition hover:shadow-[0_22px_50px_-30px_rgba(15,23,42,0.45)]"
                 >
-                  {/* IMAGE AREA */}
-                  <div className="relative h-48 md:h-56 p-4 flex items-center justify-center bg-neutral-900/30">
-                    <img 
-                      src={p.images?.[0]} 
-                      className="max-h-full object-contain group-hover:scale-110 transition-transform duration-700" 
-                      alt={p.name} 
+                  <div className="relative h-52 bg-slate-100">
+                    <img
+                      src={p.images?.[0]}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      alt={p.name}
                     />
-                    
-                    {/* DELETE ACTION */}
-                    <button 
-                      onClick={(e) => removeFromWishlist(p._id, e)}
-                      className="absolute top-4 right-4 p-3 bg-red-500/10 backdrop-blur-xl border border-red-500/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all z-20"
-                    >
-                      <FaTrash size={14} />
-                    </button>
+
+                    <div className="absolute top-3 right-3 flex gap-2">
+                      <button
+                        onClick={(e) => handleShare(e, p._id)}
+                        className="rounded-full border border-slate-200 bg-white/95 p-2 text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                      >
+                        <FaShareAlt size={12} />
+                      </button>
+                      <button
+                        onClick={(e) => removeFromWishlist(p._id, e)}
+                        className="rounded-full border border-rose-200 bg-rose-50 p-2 text-rose-600 transition hover:border-rose-300 hover:bg-rose-100"
+                      >
+                        <FaTrash size={12} />
+                      </button>
+                    </div>
                   </div>
 
-                  {/* INFO AREA */}
-                  <div className="p-6 flex flex-col flex-1">
-                    <p className="text-cyan-500 font-mono text-[9px] uppercase tracking-[0.2em] mb-1">{p.brand || "CYBER_LAB"}</p>
-                    <h3 className="font-bold text-sm md:text-base line-clamp-1 group-hover:text-cyan-400 transition-colors uppercase">{p.name}</h3>
-                    
-                    {/* DESCRIPTION */}
-                    <p className="text-[11px] text-gray-500 line-clamp-2 mt-2 leading-relaxed h-8">
+                  <div className="flex flex-1 flex-col p-5">
+                    <p className="text-[11px] uppercase tracking-[0.25em] text-slate-400">{p.brand}</p>
+                    <h3 className="mt-1 text-base font-semibold text-slate-900 line-clamp-1">
+                      {p.name}
+                    </h3>
+                    <p className="mt-2 text-sm text-slate-500 line-clamp-2">
                       {p.description}
                     </p>
 
-                    <div className="mt-auto pt-4 flex justify-between items-end border-t border-white/5">
-                      <div className="flex flex-col">
+                    <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-4">
+                      <div>
                         {p.discountPrice ? (
                           <>
-                            <span className="text-xs line-through text-gray-600 font-mono">₹{p.price}</span>
-                            <span className="text-lg md:text-xl font-black text-cyan-400 italic">₹{p.discountPrice}</span>
+                            <span className="text-lg font-semibold text-slate-900">
+                              ₹{p.discountPrice.toLocaleString()}
+                            </span>
+                            <span className="block text-xs text-slate-400 line-through">
+                              ₹{p.price.toLocaleString()}
+                            </span>
                           </>
                         ) : (
-                          <span className="text-lg md:text-xl font-black italic">₹{p.price?.toLocaleString()}</span>
+                          <span className="text-lg font-semibold text-slate-900">
+                            ₹{p.price?.toLocaleString()}
+                          </span>
                         )}
                       </div>
-                      <button 
+                      <button
                         onClick={(e) => handleAddToCart(e, p._id)}
-                        className="bg-white text-black p-3 rounded-xl hover:bg-cyan-500 transition-all shadow-lg active:scale-90 z-20"
+                        className="rounded-2xl bg-slate-900 p-3 text-white transition hover:bg-slate-800"
                       >
                         <FaShoppingCart size={14} />
                       </button>
@@ -145,7 +189,7 @@ const Wishlist = () => {
               ))}
             </div>
           )}
-        </div>
+        </main>
       </div>
     </>
   );

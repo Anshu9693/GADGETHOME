@@ -1,17 +1,11 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+﻿import React, { useEffect, useState, useMemo, useCallback } from "react";
 import axios from "axios";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  FaShoppingCart,
-  FaHeart,
-  FaRegHeart,
-  FaShareAlt,
-} from "react-icons/fa";
-import { toast } from "react-hot-toast";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import NavBar from "../../components/User/NavBar.jsx";
-import Footer from "../../components/User/Footer.jsx";
 import Filter from "../../components/User/Filter.jsx";
+import ProductCard from "../../components/Product/ProductCard.jsx";
 
 const FeaturedProducts = () => {
   const [products, setProducts] = useState([]);
@@ -24,14 +18,12 @@ const FeaturedProducts = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      // Fetch Featured Products
       const prodRes = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/api/products/user/featured`,
         { withCredentials: true }
       );
       setProducts(prodRes.data.products || []);
 
-      // Fetch Wishlist (wrapped in try-catch to handle non-logged in users)
       try {
         const wishRes = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/api/wishlist`,
@@ -40,12 +32,11 @@ const FeaturedProducts = () => {
         if (wishRes.data?.products) {
           setWishlist(wishRes.data.products.map((p) => p._id));
         }
-      } catch (err) {
-        // Silently fail if user is not logged in
-        console.log("Wishlist not fetched: User might be guest.");
+      } catch {
+        // Guest users may not have a wishlist
       }
-    } catch (error) {
-      toast.error("Failed to sync with sector database.");
+    } catch {
+      toast.error("Failed to load featured products");
     } finally {
       setLoading(false);
     }
@@ -55,7 +46,7 @@ const FeaturedProducts = () => {
     fetchData();
   }, [fetchData]);
 
-  /* ================= FILTERING LOGIC (OPTIMIZED) ================= */
+  /* ================= FILTERING LOGIC ================= */
   const filteredProducts = useMemo(() => {
     let res = [...products];
     const { priceRange, brands, categories, connectivity } = filters || {};
@@ -95,13 +86,13 @@ const FeaturedProducts = () => {
         { productId, quantity: 1 },
         { withCredentials: true }
       );
-      toast.success("Secured in Cart 🛒");
+      toast.success("Added to cart");
     } catch (err) {
       if (err.response?.status === 401) {
-        toast.error("Unauthorized: Please Login");
+        toast.error("Please login");
         navigate("/user/signin");
       } else {
-        toast.error("Cart Uplink Failed");
+        toast.error("Failed to add to cart");
       }
     }
   };
@@ -115,7 +106,7 @@ const FeaturedProducts = () => {
           { withCredentials: true }
         );
         setWishlist((prev) => prev.filter((id) => id !== productId));
-        toast.success("Removed from Wishlist");
+        toast.success("Removed from wishlist");
       } else {
         await axios.post(
           `${import.meta.env.VITE_BACKEND_URL}/api/wishlist/add`,
@@ -123,150 +114,98 @@ const FeaturedProducts = () => {
           { withCredentials: true }
         );
         setWishlist((prev) => [...prev, productId]);
-        toast.success("Added to Wishlist ❤️");
+        toast.success("Added to wishlist");
       }
     } catch (err) {
       if (err.response?.status === 401) navigate("/user/signin");
-      else toast.error("Wishlist Override Failed");
+      else toast.error("Wishlist update failed");
     }
   };
 
-  const handleShare = (e, productId) => {
+  const handleShare = async (e, productId) => {
     e.stopPropagation();
     const link = `${window.location.origin}/user/productDetail/${productId}`;
-    navigator.clipboard.writeText(link);
-    toast.success("Link Copied to Clipboard 🔗");
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(link);
+      } else {
+        const input = document.createElement("input");
+        input.value = link;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
+      }
+      toast.success("Link copied");
+    } catch {
+      toast.error("Copy failed");
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="w-14 h-14 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin shadow-[0_0_15px_rgba(6,182,212,0.5)]"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-[#050505] text-white">
+    <div className="min-h-screen bg-[#f7f7f5]">
       <NavBar />
 
-      <main className="px-6 md:px-12 pt-32 pb-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-            {/* FILTER SIDEBAR */}
-            <aside className="hidden md:block md:col-span-1">
-              <div className="sticky top-32">
-                <Filter products={products} onChange={setFilters} />
+      <main className="relative mx-auto max-w-[1400px] px-6 pb-24 pt-24">
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_1px_1px,rgba(15,23,42,0.12)_1px,transparent_0)] bg-[size:14px_14px]" />
+          <div className="absolute -top-12 -right-10 h-40 w-40 rounded-full bg-amber-200/40 blur-2xl" />
+          <div className="absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-slate-200/60 blur-3xl" />
+        </div>
+
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-4">
+          <aside className="hidden lg:block">
+            <div className="sticky top-28 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
+              <Filter products={products} onChange={setFilters} />
+            </div>
+          </aside>
+
+          <section className="lg:col-span-3">
+            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div className="w-full max-w-xs text-left">
+                <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">Featured</p>
+                <h2 className="mt-1 text-2xl font-semibold text-slate-900">Editor Picks</h2>
+                <p className="mt-1 text-[12px] text-slate-500">
+                  {filteredProducts.length} items
+                </p>
               </div>
-            </aside>
+            </div>
 
-            {/* PRODUCT GRID */}
-            <section className="md:col-span-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                <AnimatePresence mode="popLayout">
-                  {filteredProducts.length > 0 ? (
-                    filteredProducts.map((p) => (
-                      <motion.div
-                        key={p._id}
-                        layout
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        whileHover={{ y: -5 }}
-                        className="bg-white/5 border border-white/10 rounded-[2rem] p-6 group cursor-pointer flex flex-col hover:border-cyan-500/30 transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
-                        onClick={() => navigate(`/user/productDetail/${p._id}`)}
-                      >
-                        {/* IMAGE AREA */}
-                        <div className="relative h-52 flex items-center justify-center mb-6 overflow-hidden">
-                          <img
-                            src={p.images?.[0]}
-                            alt={p.name}
-                            className="max-h-full object-contain group-hover:scale-110 transition-transform duration-700"
-                          />
-
-                          {/* FLOATING ACTIONS */}
-                          <div className="absolute top-0 right-0 flex flex-col gap-2">
-                            <button
-                              onClick={(e) => toggleWishlist(e, p._id)}
-                              className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 hover:border-red-500/50 transition-colors"
-                            >
-                              {wishlist.includes(p._id) ? (
-                                <FaHeart className="text-red-500" />
-                              ) : (
-                                <FaRegHeart className="text-white" />
-                              )}
-                            </button>
-
-                            <button
-                              onClick={(e) => handleShare(e, p._id)}
-                              className="w-10 h-10 bg-black/60 backdrop-blur-md rounded-full flex items-center justify-center border border-white/10 hover:border-cyan-500/50 transition-colors"
-                            >
-                              <FaShareAlt size={14} className="text-white" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* PRODUCT INFO */}
-                        <div className="flex flex-col flex-1">
-                          <span className="text-cyan-400 text-[10px] font-black uppercase tracking-widest mb-1">
-                            {p.brand}
-                          </span>
-                          <h3 className="font-bold text-lg mb-2 line-clamp-1 group-hover:text-cyan-400 transition-colors">
-                            {p.name}
-                          </h3>
-
-                          <p className="text-xs text-gray-500 line-clamp-2 mb-4 leading-relaxed">
-                            {p.description}
-                          </p>
-
-                          {p.stock <= 10 && p.stock > 0 && (
-                            <div className="mb-4 inline-flex items-center gap-2 text-[10px] font-bold text-red-500 uppercase">
-                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-                              Limited: {p.stock} Units Left
-                            </div>
-                          )}
-
-                          <div className="mt-auto pt-4 border-t border-white/10 flex items-center justify-between">
-                            <div className="flex flex-col">
-                              {p.discountPrice ? (
-                                <>
-                                  <span className="text-xl font-black text-white">
-                                    ₹{p.discountPrice.toLocaleString()}
-                                  </span>
-                                  <span className="text-xs text-gray-500 line-through">
-                                    ₹{p.price.toLocaleString()}
-                                  </span>
-                                </>
-                              ) : (
-                                <span className="text-xl font-black text-white">
-                                  ₹{p.price.toLocaleString()}
-                                </span>
-                              )}
-                            </div>
-
-                            <button
-                              onClick={(e) => addToCart(e, p._id)}
-                              className="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center hover:bg-cyan-500 hover:scale-105 transition-all active:scale-95 shadow-lg"
-                            >
-                              <FaShoppingCart size={18} />
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))
-                  ) : (
-                    <div className="col-span-full py-20 text-center">
-                      <p className="text-gray-500 font-mono tracking-widest">NO PRODUCTS FOUND IN THIS SECTOR</p>
-                    </div>
-                  )}
-                </AnimatePresence>
+            {loading ? (
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-[420px] animate-pulse rounded-3xl border border-slate-200 bg-white/80"
+                  />
+                ))}
               </div>
-            </section>
-          </div>
+            ) : filteredProducts.length > 0 ? (
+              <motion.div layout className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredProducts.map((p) => (
+                  <ProductCard
+                    key={p._id}
+                    product={p}
+                    wishlist={wishlist}
+                    onWishlistToggle={toggleWishlist}
+                    onAddToCart={addToCart}
+                    onShare={handleShare}
+                    onOpen={() => navigate(`/user/productDetail/${p._id}`)}
+                  />
+                ))}
+              </motion.div>
+            ) : (
+              <div className="rounded-3xl border border-slate-200 bg-white/90 py-32 text-center text-slate-500">
+                No featured products found
+              </div>
+            )}
+          </section>
+        </div>
+
+        <div className="lg:hidden">
+          <Filter products={products} onChange={setFilters} />
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 };

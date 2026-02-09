@@ -18,7 +18,7 @@ import dotenv from "dotenv";
 dotenv.config();
 const app = express();
 // CORS: allow multiple origins via ALLOWED_ORIGINS env (comma-separated)
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || "").split(",").map((s) => s.trim()).filter(Boolean);
+const allowedOrigins = (process.env.FRONTEND_URL ).split(",").map((s) => s.trim()).filter(Boolean);
 console.log("Allowed CORS origins:", allowedOrigins);
 
 app.use(cors({
@@ -27,7 +27,17 @@ app.use(cors({
     if (!origin) return callback(null, true);
     if (allowedOrigins.length === 0) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error(`CORS policy: origin ${origin} not allowed`), false);
+    // Allow Vercel deployments (any subdomain of vercel.app) without hardcoding
+    try {
+      const hostname = new URL(origin).hostname;
+      if (hostname === "vercel.app" || hostname.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+    } catch (e) {
+      // fall through
+    }
+    // Deny other origins silently (do not throw) to avoid noisy stack traces
+    return callback(null, false);
   },
   credentials: true,
 }));

@@ -5,6 +5,8 @@ import {
   getAllCategories,
   updateCategory,
   deleteCategory,
+  getCategoryById,
+  getCategoryByName,
 } from "../controllers/category.controller.js";
 
 import { adminAuthMiddleware } from "../middleware/admin.auth.middleware.js";
@@ -17,7 +19,13 @@ const upload = multer({
 });
 
 // ---------- USER ----------
-router.get("/all", userAuthMiddleware, getAllCategories);
+router.get("/all", getAllCategories);
+
+
+// correct order
+router.get("/name/:name", getCategoryByName);
+router.get("/:categoryId", getCategoryById);
+
 
 // ---------- ADMIN ----------
 router.post(

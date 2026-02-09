@@ -1,19 +1,13 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import {
-  FaHeart,
-  FaRegHeart,
-  FaShoppingCart,
-  FaShareAlt,
-  FaFire,
-} from "react-icons/fa";
 import { toast } from "react-hot-toast";
+import { FaFire, FaSearch, FaChevronDown } from "react-icons/fa";
+
 import NavBar from "../../components/User/NavBar.jsx";
-import AuthFooter from "../../components/User/AuthFooter.jsx";
-import Footer from "../../components/User/Footer.jsx";
 import Filter from "../../components/User/Filter.jsx";
+import ProductCard from "../../components/Product/ProductCard.jsx";
 
 /* ================= AXIOS ================= */
 const api = axios.create({
@@ -26,16 +20,7 @@ const pageVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.06 },
-  },
-};
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 25 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: "easeOut" },
+    transition: { staggerChildren: 0.05 },
   },
 };
 
@@ -46,6 +31,7 @@ const BestSelling = () => {
   const [wishlist, setWishlist] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({});
 
   /* ================= FETCH BEST SELLERS ================= */
   const fetchBestSelling = async () => {
@@ -76,7 +62,6 @@ const BestSelling = () => {
   }, []);
 
   // Filter state and derived lists
-  const [filters, setFilters] = useState({});
   const rawProducts = products.map((item) => item.product).filter(Boolean);
 
   const filtered = (() => {
@@ -100,11 +85,24 @@ const BestSelling = () => {
   })();
 
   /* ================= SHARE ================= */
-  const handleShare = (e, productId) => {
+  const handleShare = async (e, productId) => {
     e.stopPropagation();
     const link = `${window.location.origin}/user/productDetail/${productId}`;
-    navigator.clipboard.writeText(link);
-    toast.success("Product link copied 🔗");
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(link);
+      } else {
+        const input = document.createElement("input");
+        input.value = link;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand("copy");
+        document.body.removeChild(input);
+      }
+      toast.success("Link copied");
+    } catch {
+      toast.error("Copy failed");
+    }
   };
 
   /* ================= CART ================= */
@@ -112,7 +110,7 @@ const BestSelling = () => {
     e.stopPropagation();
     try {
       await api.post("/api/cart/add", { productId, quantity: 1 });
-      toast.success("Added to cart 🛒");
+      toast.success("Added to cart");
     } catch (err) {
       if (err.response?.status === 401) navigate("/user/signin");
       else toast.error("Failed to add to cart");
@@ -132,145 +130,104 @@ const BestSelling = () => {
       }
     } catch {
       toast.error("Login first to manage wishlist");
-
     }
   };
+
+  const displayed = filtered.slice(0, 8);
 
   return (
     <>
       <NavBar />
+      <div className="min-h-screen bg-[#f7f7f5]">
+        <main className="relative mx-auto max-w-[1400px] px-6 pb-24 pt-24">
+          <div className="pointer-events-none absolute inset-0 -z-10">
+            <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_1px_1px,rgba(15,23,42,0.12)_1px,transparent_0)] bg-[size:14px_14px]" />
+            <div className="absolute -top-12 -right-10 h-40 w-40 rounded-full bg-amber-200/40 blur-2xl" />
+            <div className="absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-slate-200/60 blur-3xl" />
+          </div>
 
-      <div className="min-h-screen bg-[#050505] text-white pt-28 pb-24 px-4 md:px-10">
-        <div className="max-w-7xl mx-auto">
-          {/* ===== HEADER ===== */}
-          {/* <div className="flex items-center gap-3 mb-10">
-            <FaFire className="text-orange-500 text-3xl animate-pulse" />
-            <h1 className="text-3xl md:text-4xl font-black">
-              Best Selling Products
-            </h1>
-          </div> */}
-
-          {loading ? (
-            <p className="text-gray-400">Loading best sellers...</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="hidden md:block md:col-span-1">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-4">
+            <aside className="hidden lg:block">
+              <div className="sticky top-28 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
                 <Filter products={rawProducts} onChange={setFilters} />
               </div>
+            </aside>
 
-              <div className="md:col-span-3">
+            <section className="lg:col-span-3">
+              <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div className="w-full max-w-xs text-left">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">Best Selling</p>
+                  <h2 className="mt-1 text-2xl font-semibold text-slate-900">Top Picks</h2>
+                  <p className="mt-1 text-[12px] text-slate-500">
+                    {filtered.length} items
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 text-slate-500">
+                  <FaFire className="text-amber-500" />
+                  <span className="text-xs uppercase tracking-[0.2em]">Trending now</span>
+                </div>
+              </div>
+              {loading ? (
+                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                  {[...Array(6)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-[420px] animate-pulse rounded-3xl border border-slate-200 bg-white/80"
+                    />
+                  ))}
+                </div>
+              ) : (
                 <motion.div
                   variants={pageVariants}
                   initial="hidden"
                   animate="visible"
-                  className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8"
+                  className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
                 >
-                  {filtered.slice(0, 6).map((product, index) => {
+                  {displayed.map((product, index) => {
                     if (!product) return null;
+                    const totalSold = (products.find(i => i.product?._id === product._id)?.totalSold) ?? 0;
+
+                    const hasDiscount = Boolean(product.discountPrice);
 
                     return (
-                      <motion.div
-                        key={product._id}
-                        variants={cardVariants}
-                        whileHover={{ y: -6 }}
-                        onClick={() =>
-                          isLoggedIn
-                            ? navigate(`/user/productDetail/${product._id}`)
-                            : navigate("/user/signin")
-                        }
-                        className="relative bg-[#0b0b0b] border border-white/5 rounded-xl overflow-hidden cursor-pointer group"
-                      >
-                        {/* ===== RANK BADGE ===== */}
-                        <div className="absolute top-3 left-3 z-10">
-                          <span className="px-3 py-1 text-xs font-black rounded-full bg-orange-500 text-black">
-                            #{index + 1} BEST
-                          </span>
-                        </div>
+                      <div key={product._id} className="relative">
+                        <span
+                          className={`pointer-events-none absolute z-10 rounded-full bg-amber-500 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-white shadow ${
+                            hasDiscount ? "left-3 top-12" : "left-3 top-3"
+                          }`}
+                        >
+                          #{index + 1} best
+                        </span>
 
-                        {/* ===== IMAGE ===== */}
-                        <div className="relative aspect-square overflow-hidden bg-neutral-900/50">
-                          <img
-                            src={product.images[0]}
-                            alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition"
-                          />
+                        <ProductCard
+                          product={product}
+                          wishlist={wishlist}
+                          onWishlistToggle={toggleWishlist}
+                          onAddToCart={handleAddToCart}
+                          onShare={handleShare}
+                          onOpen={() =>
+                            isLoggedIn
+                              ? navigate(`/user/productDetail/${product._id}`)
+                              : navigate("/user/signin")
+                          }
+                        />
 
-                          {/* ACTIONS */}
-                          <div className="absolute top-3 right-3 flex gap-2 z-10">
-                            <button
-                              onClick={(e) => toggleWishlist(e, product._id)}
-                              className="p-2 bg-black/50 rounded-xl border border-white/10"
-                            >
-                              {wishlist.includes(product._id) ? (
-                                <FaHeart className="text-red-500" />
-                              ) : (
-                                <FaRegHeart />
-                              )}
-                            </button>
-
-                            <button
-                              onClick={(e) => handleShare(e, product._id)}
-                              className="p-2 bg-black/50 rounded-xl border border-white/10 hover:bg-cyan-500"
-                            >
-                              <FaShareAlt />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* ===== INFO ===== */}
-                        <div className="p-4 flex flex-col">
-                          <p className="text-cyan-500 text-[10px] font-black uppercase">
-                            {product.brand}
-                          </p>
-
-                          <h3 className="text-sm font-bold line-clamp-2 mb-1">
-                            {product.name}
-                          </h3>
-
-                          <p className="text-xs text-gray-400 mb-2">
-                            🔥 Sold { (products.find(i=>i.product?._id===product._id)?.totalSold) ?? 0 } times
-                          </p>
-
-                          <div className="flex justify-between items-center mt-auto pt-3 border-t border-white/5">
-                            <div>
-                              {product.discountPrice ? (
-                                <>
-                                  <span className="text-lg font-black text-cyan-400">
-                                    ₹{product.discountPrice}
-                                  </span>
-                                  <span className="block text-xs line-through text-gray-500">
-                                    ₹{product.price}
-                                  </span>
-                                </>
-                              ) : (
-                                <span className="text-lg font-black">
-                                  ₹{product.price}
-                                </span>
-                              )}
-                            </div>
-
-                            <button
-                              onClick={(e) =>
-                                handleAddToCart(e, product._id)
-                              }
-                              className="p-3 bg-white text-black rounded-xl hover:bg-cyan-500"
-                            >
-                              <FaShoppingCart />
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
+                        <p className="mt-2 text-xs text-slate-500">
+                          Sold {totalSold} times
+                        </p>
+                      </div>
                     );
                   })}
                 </motion.div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+              )}
+            </section>
+          </div>
 
-      {/* <AuthFooter /> */}
-      <Footer/>
+          <div className="lg:hidden">
+            <Filter products={rawProducts} onChange={setFilters} />
+          </div>
+        </main>
+      </div>
     </>
   );
 };

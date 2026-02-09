@@ -71,106 +71,89 @@ const UserSignup = () => {
       <ToastContainer
         position="top-right"
         autoClose={2000}
-        theme="dark"
+        theme="light"
       />
 
-      <div className="min-h-screen flex items-center justify-center bg-[#050505] px-4 relative overflow-hidden">
-        {/* Background Glows */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[120px] -z-10" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] -z-10" />
-
+      <div className="min-h-screen bg-[#f6f7fb] px-4 py-14">
         <motion.div
           initial="hidden"
           animate="visible"
           variants={fadeUp}
-          className="w-full max-w-md rounded-[2.5rem] border border-white/10 bg-white/5 backdrop-blur-2xl p-10 text-white shadow-2xl"
+          className="mx-auto w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl"
         >
-          {/* Header */}
-          <motion.div variants={fadeUp} className="text-center mb-10">
-            <h2 className="text-4xl font-black tracking-tighter mb-2">
-              GADGET<span className="text-cyan-400">HOME</span>
+          <motion.div variants={fadeUp} className="text-center mb-8">
+            <h2 className="text-3xl font-black tracking-tight text-slate-900">
+              GADGET<span className="text-cyan-500">HOME</span>
             </h2>
-            <p className="text-gray-400 text-sm uppercase tracking-widest font-bold">
-              Create Account
+            <p className="mt-2 text-sm text-slate-500">
+              Create your account
             </p>
           </motion.div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Full Name */}
-            <motion.div variants={fadeUp} custom={1} className="relative">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <motion.div variants={fadeUp} custom={1}>
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Full Name
+              </label>
               <input
                 type="text"
                 name="fullName"
                 value={form.fullName}
                 onChange={handleChange}
-                placeholder=" "
+                placeholder="Enter your name"
                 required
-                className="peer w-full bg-transparent border-b-2 border-white/10 py-3 text-white outline-none focus:border-cyan-400 transition-all"
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
               />
-              <label className="absolute left-0 top-3 text-gray-500 transition-all 
-                peer-focus:-top-5 peer-focus:text-xs peer-focus:text-cyan-400 
-                peer-[:not(:placeholder-shown)]:-top-5 peer-[:not(:placeholder-shown)]:text-xs">
-                Full Name
-              </label>
             </motion.div>
 
-            {/* Email */}
-            <motion.div variants={fadeUp} custom={2} className="relative">
+            <motion.div variants={fadeUp} custom={2}>
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Email Address
+              </label>
               <input
                 type="email"
                 name="email"
                 value={form.email}
                 onChange={handleChange}
-                placeholder=" "
+                placeholder="you@example.com"
                 required
-                className="peer w-full bg-transparent border-b-2 border-white/10 py-3 text-white outline-none focus:border-cyan-400 transition-all"
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
               />
-              <label className="absolute left-0 top-3 text-gray-500 transition-all 
-                peer-focus:-top-5 peer-focus:text-xs peer-focus:text-cyan-400 
-                peer-[:not(:placeholder-shown)]:-top-5 peer-[:not(:placeholder-shown)]:text-xs">
-                Email Address
-              </label>
             </motion.div>
 
-            {/* Password */}
-            <motion.div variants={fadeUp} custom={3} className="relative">
+            <motion.div variants={fadeUp} custom={3}>
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Password
+              </label>
               <input
                 type="password"
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                placeholder=" "
+                placeholder="Create a password"
                 required
-                className="peer w-full bg-transparent border-b-2 border-white/10 py-3 text-white outline-none focus:border-cyan-400 transition-all"
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-200"
               />
-              <label className="absolute left-0 top-3 text-gray-500 transition-all 
-                peer-focus:-top-5 peer-focus:text-xs peer-focus:text-cyan-400 
-                peer-[:not(:placeholder-shown)]:-top-5 peer-[:not(:placeholder-shown)]:text-xs">
-                Password
-              </label>
             </motion.div>
 
-            {/* Submit Button */}
             <motion.button
               variants={fadeUp}
               custom={4}
               disabled={loading}
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-4 rounded-2xl bg-cyan-500 text-black font-black uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)] disabled:opacity-50"
+              className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold uppercase tracking-widest text-white transition hover:bg-slate-800 disabled:opacity-60"
             >
               {loading ? "Creating Account..." : "Create Account"}
             </motion.button>
           </form>
 
-          {/* Bottom Links */}
-          <div className="mt-10 text-center text-sm">
-            <p className="text-gray-400">
+          <div className="mt-6 text-center text-sm">
+            <p className="text-slate-500">
               Already have an account?{" "}
               <Link
                 to="/user/signin"
-                className="text-cyan-400 font-bold hover:underline"
+                className="font-semibold text-cyan-600 hover:text-cyan-700"
               >
                 Login
               </Link>

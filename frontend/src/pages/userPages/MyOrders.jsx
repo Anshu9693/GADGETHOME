@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useMemo } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import NavBar from "../../components/User/NavBar.jsx";
-import Footer from "../../components/User/Footer.jsx";
 import {
   FaBox,
   FaTruck,
@@ -58,10 +57,9 @@ const MyOrders = () => {
     let result = [...orders];
 
     if (searchTerm) {
+      const q = searchTerm.toLowerCase();
       result = result.filter((order) =>
-        order.items.some((item) =>
-          item.name.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        order.items.some((item) => item.name.toLowerCase().includes(q))
       );
     }
 
@@ -74,9 +72,7 @@ const MyOrders = () => {
     if (endDate) {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
-      result = result.filter(
-        (order) => new Date(order.createdAt) <= end
-      );
+      result = result.filter((order) => new Date(order.createdAt) <= end);
     }
 
     result.sort((a, b) =>
@@ -94,21 +90,33 @@ const MyOrders = () => {
     setSortBy("newest");
     setStartDate("");
     setEndDate("");
-    toast.success("Filters Reset");
+    toast.success("Filters reset");
   };
 
   /* ================= CANCEL ORDER ================= */
   const cancelOrder = async (orderId) => {
     if (busy[orderId]) return;
-    if (!window.confirm("Confirm cancel order?")) return;
+    const confirmText = window.prompt(
+      "Type CANCEL to confirm order cancellation:"
+    );
+    if (confirmText !== "CANCEL") {
+      toast.error("Cancellation not confirmed");
+      return;
+    }
 
     setBusy((p) => ({ ...p, [orderId]: true }));
     try {
       await api.put(`/api/order/user/cancel/${orderId}`);
-      toast.success("Order Cancelled");
+      toast.success("Order cancelled");
+      setOrders((prev) =>
+        prev.map((o) =>
+          o._id === orderId ? { ...o, orderStatus: "Cancelled" } : o
+        )
+      );
       fetchOrders();
-    } catch {
-      toast.error("Cancellation failed");
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Cancellation failed";
+      toast.error(msg);
     } finally {
       setBusy((p) => ({ ...p, [orderId]: false }));
     }
@@ -117,8 +125,8 @@ const MyOrders = () => {
   /* ================= LOADING ================= */
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="w-10 h-10 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#f7f7f5] flex items-center justify-center">
+        <div className="h-10 w-10 rounded-full border-2 border-slate-400 border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -127,82 +135,110 @@ const MyOrders = () => {
     <>
       <NavBar />
 
-      <div className="min-h-screen bg-[#050505] text-white pt-32 px-6 md:px-12 pb-24">
-        <div className="max-w-7xl mx-auto space-y-10">
+      <div className="min-h-screen bg-[#f7f7f5]">
+        <main className="relative mx-auto max-w-[1200px] px-6 pb-24 pt-24">
+          <div className="pointer-events-none absolute inset-0 -z-10">
+            <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_1px_1px,rgba(15,23,42,0.12)_1px,transparent_0)] bg-[size:14px_14px]" />
+            <div className="absolute -top-12 -right-10 h-40 w-40 rounded-full bg-amber-200/40 blur-2xl" />
+            <div className="absolute -bottom-16 -left-12 h-48 w-48 rounded-full bg-slate-200/60 blur-3xl" />
+          </div>
+
+          <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="w-full max-w-xs text-left">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">Orders</p>
+              <h1 className="mt-1 text-2xl font-semibold text-slate-900">My Orders</h1>
+              <p className="mt-1 text-[12px] text-slate-500">
+                {filteredOrders.length} orders
+              </p>
+            </div>
+            <button
+              onClick={() => setShowFilters(true)}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300"
+            >
+              <FaFilter />
+              Filters
+            </button>
+          </div>
 
           <AnimatePresence mode="popLayout">
             {filteredOrders.map((order) => (
               <motion.div
                 key={order._id}
-                layout
-                initial={{ opacity: 0, scale: 0.97 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-[#0b0b0b] border border-white/5 rounded-[2.5rem] 
-                p-6 md:p-10 hover:border-cyan-500 transition-all duration-500"
+                layout="position"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="mb-6 rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.35)]"
               >
                 {/* HEADER */}
-                <div className="flex flex-col md:flex-row justify-between gap-8 mb-8 pb-6 border-b border-white/5">
-                  <div className="flex flex-wrap gap-8 text-[11px] font-mono uppercase tracking-widest text-gray-500">
-                    <Info label="REF_ID" value={order._id.slice(-10)} />
+                <div className="flex flex-col gap-6 border-b border-slate-100 pb-6 md:flex-row md:items-center md:justify-between">
+                  <div className="flex flex-wrap gap-6 text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                    <Info label="Order ID" value={order._id.slice(-10)} />
                     <Info
-                      label="DATE"
+                      label="Date"
                       value={new Date(order.createdAt).toLocaleDateString()}
+                    />
+                    <Info
+                      label="Time"
+                      value={new Date(order.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     />
                     <StatusBadge status={order.orderStatus} />
                   </div>
 
                   <div className="text-right">
-                    <p className="text-[10px] tracking-widest font-mono uppercase text-gray-500">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
                       Amount
                     </p>
-                    <p className="text-3xl font-black italic tracking-tight text-cyan-400">
+                    <p className="text-2xl font-semibold text-slate-900">
                       ₹{order.totalAmount.toLocaleString()}
                     </p>
                   </div>
                 </div>
 
                 {/* ITEMS */}
-                <div className="space-y-4">
+                <div className="mt-6 space-y-4">
                   {order.items.map((item) => (
                     <div
                       key={item.product}
-                      className="flex items-center gap-6 bg-white/5 rounded-2xl 
-                      p-4 border border-transparent hover:border-white/10"
+                      className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4"
                     >
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="w-14 h-14 object-contain bg-black rounded-lg p-1"
+                        className="h-14 w-14 rounded-xl bg-slate-100 object-contain p-2"
                       />
                       <div className="flex-1">
-                        <h4 className="text-sm font-semibold uppercase tracking-wide">
+                        <h4 className="text-sm font-semibold text-slate-900">
                           {item.name}
                         </h4>
-                        <p className="text-[11px] text-gray-400 font-mono tracking-wide">
-                          QTY: {item.quantity}
+                        <p className="text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                          Qty {item.quantity}
                         </p>
                       </div>
+                      <span className="text-sm font-semibold text-slate-900">
+                        ₹{(item.price * item.quantity).toLocaleString()}
+                      </span>
                     </div>
                   ))}
                 </div>
 
                 {/* ACTIONS */}
-                <div className="mt-8 flex gap-3">
+                <div className="mt-6 flex flex-wrap gap-3">
                   <ActionButton
                     text="Details"
                     onClick={() => navigate(`/user/order/${order._id}`)}
                   />
 
-                  {order.orderStatus === "Placed" && (
+                  {["Placed", "Processing"].includes(order.orderStatus) && (
                     <button
                       onClick={() => cancelOrder(order._id)}
-                      className="px-6 py-3 rounded-xl bg-red-500/10 
-                      text-red-500 border border-red-500/20 
-                      text-[11px] tracking-widest font-black uppercase 
-                      hover:bg-red-500 hover:text-white transition-all"
+                      disabled={busy[order._id]}
+                      className="rounded-xl border border-rose-200 bg-rose-50 px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-600 transition hover:border-rose-300 hover:bg-rose-100 disabled:opacity-60"
                     >
-                      Cancel
+                      {busy[order._id] ? "Cancelling..." : "Cancel"}
                     </button>
                   )}
                 </div>
@@ -211,25 +247,12 @@ const MyOrders = () => {
           </AnimatePresence>
 
           {filteredOrders.length === 0 && (
-            <div className="text-center py-24 opacity-40">
-              <FaBox size={42} className="mx-auto mb-4" />
-              <p className="font-mono text-[11px] tracking-widest uppercase text-gray-500">
-                No Orders Found
-              </p>
+            <div className="rounded-3xl border border-slate-200 bg-white/90 py-32 text-center text-slate-500">
+              <FaBox size={36} className="mx-auto mb-4" />
+              <p className="text-[11px] uppercase tracking-[0.25em]">No orders found</p>
             </div>
           )}
-        </div>
-
-        {/* FILTER BUTTON */}
-        <button
-          onClick={() => setShowFilters(true)}
-          className="fixed bottom-10 right-10 w-16 h-16 bg-cyan-500 text-black 
-          rounded-full flex items-center justify-center 
-          shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:scale-110 
-          transition-all z-40 border-4 border-black"
-        >
-          <FaFilter size={20} />
-        </button>
+        </main>
 
         <FilterDrawer
           open={showFilters}
@@ -247,8 +270,6 @@ const MyOrders = () => {
           }}
         />
       </div>
-
-      <Footer />
     </>
   );
 };
@@ -257,46 +278,34 @@ const MyOrders = () => {
 
 const Info = ({ label, value }) => (
   <div className="space-y-1">
-    <p className="text-[10px] tracking-widest text-gray-500">{label}</p>
-    <p className="text-sm font-semibold text-white">{value}</p>
+    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">{label}</p>
+    <p className="text-sm font-semibold text-slate-900">{value}</p>
   </div>
 );
 
 const ActionButton = ({ text, onClick }) => (
   <button
     onClick={onClick}
-    className="px-6 py-3 rounded-xl border border-white/10 
-    hover:border-cyan-500 text-[11px] tracking-widest 
-    font-black uppercase transition-all"
+    className="rounded-xl border border-slate-200 bg-white px-6 py-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-700 transition hover:border-slate-300"
   >
     {text}
   </button>
 );
 
 const StatusBadge = ({ status }) => {
-  const map = {
-    Placed: ["Placed", <FaBox />, "yellow"],
-    Shipped: ["Shipped", <FaTruck />, "blue"],
-    Delivered: ["Delivered", <FaCheckCircle />, "green"],
-    Cancelled: ["Cancelled", <FaTimesCircle />, "red"],
-  };
-
   const colors = {
-    yellow: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-    blue: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    green: "bg-green-500/10 text-green-400 border-green-500/20",
-    red: "bg-red-500/10 text-red-400 border-red-500/20",
+    Placed: "bg-amber-50 text-amber-700 border-amber-200",
+    Processing: "bg-blue-50 text-blue-700 border-blue-200",
+    Shipped: "bg-purple-50 text-purple-700 border-purple-200",
+    Delivered: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    Cancelled: "bg-rose-50 text-rose-700 border-rose-200",
   };
-
-  const [text, icon, color] = map[status] || map.Placed;
-
   return (
-    <div
-      className={`flex items-center gap-2 px-3 py-1 rounded-md border 
-      text-[10px] font-black uppercase tracking-[0.25em] ${colors[color]}`}
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] ${colors[status]}`}
     >
-      {icon} {text}
-    </div>
+      {status}
+    </span>
   );
 };
 
@@ -323,99 +332,78 @@ const FilterDrawer = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/80 z-50"
+          className="fixed inset-0 z-50 bg-slate-900/50"
         />
         <motion.div
           initial={{ x: "100%" }}
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="fixed top-0 right-0 h-full w-full max-w-[350px] 
-          bg-[#0b0b0b] border-l border-white/10 z-[60] p-8 flex flex-col"
+          className="fixed right-0 top-0 z-[60] flex h-full w-full max-w-[360px] flex-col border-l border-slate-200 bg-white p-6"
         >
-          <div className="flex justify-between mb-10">
-            <h2 className="text-2xl font-black italic tracking-tight">
-              FILTERS_
-            </h2>
-            <button onClick={onClose}>
+          <div className="mb-6 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+            <button onClick={onClose} className="text-slate-500">
               <FaTimes />
             </button>
           </div>
 
-         <div className="space-y-6 bg-white/5 p-6 rounded-[2rem] border border-white/10 backdrop-blur-md">
-  {/* Search Bar Sector */}
-  <div className="relative group">
-    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-      <div className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse" />
-    </div>
-    <input
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-      placeholder="SEARCH PRODUCT ARCHIVE..."
-      className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-10 pr-4 text-[11px] font-mono uppercase tracking-[0.2em] text-cyan-400 placeholder:text-gray-600 focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all outline-none"
-    />
-  </div>
+          <div className="space-y-6">
+            <div>
+              <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                Search
+              </label>
+              <input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search orders"
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-300 focus:ring-2 focus:ring-slate-200"
+              />
+            </div>
 
-  {/* Date Range Sector */}
-  <div className="grid grid-cols-2 gap-3">
-    <div className="flex flex-col gap-1.5">
-      <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest ml-1">Arrival_Start</label>
-      <input 
-        type="date" 
-        value={startDate} 
-        onChange={(e) => setStartDate(e.target.value)}
-        className="bg-white/5 border border-white/10 rounded-xl py-3 px-3 text-[10px] font-mono text-gray-300 uppercase outline-none focus:border-cyan-500/40 custom-calendar-icon" 
-      />
-    </div>
-    <div className="flex flex-col gap-1.5">
-      <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest ml-1">Arrival_End</label>
-      <input 
-        type="date" 
-        value={endDate} 
-        onChange={(e) => setEndDate(e.target.value)} 
-        className="bg-white/5 border border-white/10 rounded-xl py-3 px-3 text-[10px] font-mono text-gray-300 uppercase outline-none focus:border-cyan-500/40 custom-calendar-icon"
-      />
-    </div>
-  </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                  From
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                  To
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none"
+                />
+              </div>
+            </div>
 
-  {/* Sort & Action Sector */}
-  <div className="relative">
-    <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest ml-1 mb-1.5 block">Sequence_Order</label>
-    <select 
-      className="w-full bg-white/5 border border-white/10 rounded-xl py-3.5 px-4 text-[10px] font-bold uppercase tracking-widest text-cyan-500 outline-none appearance-none cursor-pointer focus:border-cyan-500/40 transition-all"
-      value={sortBy} 
-      onChange={(e) => setSortBy(e.target.value)}
-    >
-      <option className="bg-[#0f0f0f] text-white" value="newest">Recent_Units</option>
-      <option className="bg-[#0f0f0f] text-white" value="oldest">Legacy_Units</option>
-      <option className="bg-[#0f0f0f] text-white" value="price-low">Credit_Min</option>
-      <option className="bg-[#0f0f0f] text-white" value="price-high">Credit_Max</option>
-    </select>
-    {/* Custom Arrow for Select */}
-    <div className="absolute right-4 bottom-4 pointer-events-none text-cyan-500/50">
-      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7" />
-      </svg>
-    </div>
-  </div>
-
-  <style jsx>{`
-    .custom-calendar-icon::-webkit-calendar-picker-indicator {
-      filter: invert(1) sepia(100%) saturate(500%) hue-rotate(150deg);
-      cursor: pointer;
-      opacity: 0.6;
-    }
-    .custom-calendar-icon::-webkit-calendar-picker-indicator:hover {
-      opacity: 1;
-    }
-  `}</style>
-</div>
+            <div>
+              <label className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                Sort
+              </label>
+              <select
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+              </select>
+            </div>
+          </div>
 
           <button
             onClick={resetFilters}
-            className="mt-auto py-4 border border-red-500/20 
-            text-red-500 hover:bg-red-500 hover:text-white 
-            rounded-xl uppercase text-[11px] tracking-widest font-black"
+            className="mt-auto rounded-2xl border border-rose-200 bg-rose-50 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-rose-600 transition hover:border-rose-300 hover:bg-rose-100"
           >
             <FaUndo className="inline mr-2" />
             Reset
