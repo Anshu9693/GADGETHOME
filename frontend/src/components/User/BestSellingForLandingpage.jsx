@@ -73,7 +73,7 @@ const BestSellingForLandingpage = () => {
       await api.post("/api/cart/add", { productId, quantity: 1 });
       toast.success("Added to cart");
     } catch (err) {
-      if (err.response?.status === 401) navigate("/user/signin");
+      if (err.response?.status === 401) navigate("/user/bestselling");
       else toast.error("Failed to add to cart");
     }
   };
@@ -150,11 +150,7 @@ const BestSellingForLandingpage = () => {
                     onWishlistToggle={toggleWishlist}
                     onAddToCart={handleAddToCart}
                     onShare={handleShare}
-                    onOpen={() =>
-                      isLoggedIn
-                        ? navigate(`/user/productDetail/${product._id}`)
-                        : navigate("/user/signin")
-                    }
+                    onOpen={() => navigate(`/user/productDetail/${product._id}`)}
                     showDescription={false}
                     showRating={false}
                     showCategory={false}
