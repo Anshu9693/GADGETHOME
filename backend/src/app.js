@@ -56,9 +56,8 @@ app.post(
 // Now register JSON body parser and Stripe routes
 app.use(express.json());
 
-// ✅ Apply security middlewares
+// ✅ Apply input validation middleware only (rate limiting on specific auth routes)
 app.use(validateInput);
-app.use(generalLimiter);
 
 app.use("/api/stripe", stripeRoutes);
 
