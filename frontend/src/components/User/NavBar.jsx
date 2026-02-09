@@ -186,13 +186,24 @@ const Navbar = () => {
                   className="absolute right-0 mt-3 w-40 rounded-xl bg-[#0b0b0b] border border-white/10"
                 >
                   {!isAuthenticated ? (
+                    <>
                     <Link
                       to="/user/signin"
                       onClick={() => setProfileOpen(false)}
-                      className="block px-5 py-3 text-cyan-400 hover:bg-white/5"
+                      className="block px-5 py-3 text-sm hover:bg-white/5"
                     >
                       Sign In
                     </Link>
+                    <Link
+                      to="/admin/signin"
+                      className="block px-5 py-3 text-sm twhite hover:bg-white/5"
+                    >
+                      Contineu As admin
+                    </Link>
+                    
+                    </>
+                    
+                    
                   ) : (
                     <>
                       <Link
