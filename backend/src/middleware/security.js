@@ -20,6 +20,11 @@ export const authLimiter = rateLimit({
 
 // ✅ Input validation for common fields
 export const validateInput = (req, res, next) => {
+  // Only validate if body exists (POST, PUT requests)
+  if (!req.body) {
+    return next();
+  }
+
   // Sanitize common fields
   if (req.body.email) {
     req.body.email = String(req.body.email).trim().toLowerCase();
