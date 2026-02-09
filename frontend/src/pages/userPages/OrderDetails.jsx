@@ -66,11 +66,6 @@ const OrderDetails = () => {
 
   const handleDownloadInvoice = () => {
     if (!order) return;
-    const win = window.open("", "_blank");
-    if (!win) {
-      toast.error("Popup blocked. Please allow popups to download.");
-      return;
-    }
 
     const orderId = order._id || "order";
     const title = `gadgetHome-${orderId}`;
@@ -93,8 +88,8 @@ const OrderDetails = () => {
       )
       .join("");
 
-    win.document.open();
-    win.document.write(`
+    // ✅ Safe way: use Blob instead of document.write
+    const htmlContent = `
       <!doctype html>
       <html>
         <head>
@@ -156,12 +151,24 @@ const OrderDetails = () => {
           </div>
         </body>
       </html>
-    `);
-    win.document.close();
+    `;
+
+    // Create and open Blob safely
+    const blob = new Blob([htmlContent], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, "_blank");
+    
+    if (!win) {
+      toast.error("Popup blocked. Please allow popups to download.");
+      URL.revokeObjectURL(url);
+      return;
+    }
+
     win.focus();
     setTimeout(() => {
       win.print();
       win.close();
+      URL.revokeObjectURL(url);
     }, 300);
   };
 

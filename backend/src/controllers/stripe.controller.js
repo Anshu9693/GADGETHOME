@@ -166,9 +166,19 @@ export const confirmStripeSessionGET = async (req, res) => {
       }
     }
 
-    // Redirect back to frontend orders page (optionally include session)
+    // ✅ Redirect back to frontend orders page (validate URL first)
     const frontendUrl = process.env.FRONTEND_URL;
-    return res.redirect(302, `${frontendUrl}/user/myorders`);
+    if (!frontendUrl || !frontendUrl.startsWith("http")) {
+      return res.status(400).send("Invalid frontend URL configuration");
+    }
+    
+    try {
+      new URL(`${frontendUrl}/user/myorders`);
+      return res.redirect(302, `${frontendUrl}/user/myorders`);
+    } catch (e) {
+      console.error("Invalid redirect URL:", e);
+      return res.status(400).send("Invalid redirect URL");
+    }
   } catch (error) {
     console.error("Confirm GET session error:", error);
     return res.status(500).send("Server error confirming session");

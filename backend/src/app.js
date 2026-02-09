@@ -1,7 +1,9 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import helmet from "helmet";
 import connectDB from "./config/db.js";
+import { generalLimiter, authLimiter, validateInput } from "./middleware/security.js";
 import userRoutes from "./routes/user.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import wishlistRoutes from "./routes/wishlist.routes.js";
@@ -17,6 +19,10 @@ import { stripeWebhook } from "./controllers/stripe.webhook.js";
 import dotenv from "dotenv";
 dotenv.config();
 const app = express();
+
+// ✅ Security Headers
+app.use(helmet());
+
 // CORS: allow multiple origins via ALLOWED_ORIGINS env (comma-separated)
 const allowedOrigins = (process.env.FRONTEND_URL ).split(",").map((s) => s.trim()).filter(Boolean);
 console.log("Allowed CORS origins:", allowedOrigins);
@@ -27,17 +33,8 @@ app.use(cors({
     if (!origin) return callback(null, true);
     if (allowedOrigins.length === 0) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    // Allow Vercel deployments (any subdomain of vercel.app) without hardcoding
-    try {
-      const hostname = new URL(origin).hostname;
-      if (hostname === "vercel.app" || hostname.endsWith(".vercel.app")) {
-        return callback(null, true);
-      }
-    } catch (e) {
-      // fall through
-    }
-    // Deny other origins silently (do not throw) to avoid noisy stack traces
-    return callback(null, false);
+    // Deny other origins
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
 }));
@@ -58,6 +55,11 @@ app.post(
 
 // Now register JSON body parser and Stripe routes
 app.use(express.json());
+
+// ✅ Apply security middlewares
+app.use(validateInput);
+app.use(generalLimiter);
+
 app.use("/api/stripe", stripeRoutes);
 
 

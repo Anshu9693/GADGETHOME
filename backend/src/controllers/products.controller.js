@@ -23,9 +23,16 @@ export const searchProducts = async (req, res) => {
       return res.status(400).json({ message: "Search query is required" });
     }
 
+    // ✅ Input validation
+    if (typeof q !== "string" || q.length > 200) {
+      return res.status(400).json({ message: "Invalid search query" });
+    }
+
+    const sanitizedQuery = q.trim().substring(0, 200);
+
     const products = await ProductModel.find({
       isActive: true,
-      $text: { $search: q },
+      $text: { $search: sanitizedQuery },
     });
 
     res.status(200).json({ products });
